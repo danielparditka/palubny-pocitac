@@ -47,7 +47,7 @@
     html, body {
       width: 100%;
       height: 100%;
-      overflow: hidden;
+      overflow: hidden; /* Zabráni skrolovaniu */
       background: var(--bg);
       color: var(--text);
       transition: background-color 0.3s, color 0.3s;
@@ -57,7 +57,7 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
-      max-width: 600px;
+      max-width: 600px; /* Ideálna šírka pre mobil */
       margin: 0 auto;
       padding: 6px;
       gap: 6px;
@@ -72,7 +72,6 @@
       align-items: center;
       border: 1px solid var(--border);
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      flex-shrink: 0;
     }
     header h2 { font-size: 1.1rem; color: var(--primary); font-weight: 700; }
     
@@ -97,7 +96,9 @@
       justify-content: center;
       transition: background 0.2s;
     }
-    .theme-toggle-btn:hover { background: var(--border); }
+    .theme-toggle-btn:hover {
+      background: var(--border);
+    }
 
     /* Palubný Displej */
     .dashboard-panel {
@@ -106,18 +107,17 @@
       padding: 8px;
       border: 1px solid var(--border);
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      flex-shrink: 0;
     }
 
     .display-screen {
       background: var(--disp-bg);
       color: var(--disp-txt);
       border-radius: 6px;
-      padding: 6px 10px;
+      padding: 8px 10px;
       margin-bottom: 6px;
     }
     .disp-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; }
-    .display-main { font-size: 1.1rem; font-weight: 700; color: #38bdf8; text-align: center; margin: 2px 0; }
+    .disp-main { font-size: 1.2rem; font-weight: 700; color: #38bdf8; text-align: center; margin: 2px 0; }
 
     /* Ovládanie */
     .controls-row { display: flex; gap: 6px; margin-bottom: 6px; }
@@ -135,10 +135,10 @@
     }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-success { background: var(--success); }
-    .btn-arrive { width: 100%; padding: 8px; font-size: 0.9rem; }
+    .btn-arrive { width: 100%; padding: 8px; font-size: 0.95rem; }
 
     /* Mapa */
-    .map-panel { flex: 1; display: flex; flex-direction: column; min-height: 120px; }
+    .map-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
     .map-box {
       flex: 1;
       background: var(--map-bg);
@@ -146,6 +146,7 @@
       border: 1px solid var(--border);
       position: relative;
       overflow: hidden;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
     }
     
     .compass { position: absolute; font-size: 0.6rem; color: var(--text-muted); font-weight: 700; }
@@ -189,11 +190,11 @@
     }
 
     /* Lístky */
-    .tickets-panel { flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; }
-    .section-title { font-size: 0.72rem; font-weight: 700; margin-bottom: 3px; color: var(--text-muted); text-transform: uppercase; }
+    .tickets-panel { height: 230px; display: flex; flex-direction: column; justify-content: space-between; }
+    .section-title { font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); text-transform: uppercase; }
     
     /* Zastávky pre lístky */
-    .stops-selector { display: flex; gap: 4px; margin-bottom: 4px; overflow-x: auto; padding-bottom: 2px; }
+    .stops-selector { display: flex; gap: 4px; margin-bottom: 6px; overflow-x: auto; padding-bottom: 2px; }
     .stop-select-btn {
       flex: 1;
       padding: 4px 6px;
@@ -215,20 +216,21 @@
       box-shadow: 0 0 0 1px var(--primary);
     }
 
-    .ticket-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; max-height: 85px; overflow-y: auto; padding-right: 2px; }
+    .ticket-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; overflow-y: auto; max-height: 95px; padding-right: 2px; }
     
     .ticket-btn {
       background: var(--panel);
       border: 2px solid var(--border);
       color: var(--text);
-      padding: 4px 6px;
+      padding: 5px 8px;
       border-radius: 6px;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       font-weight: 600;
+      position: relative;
       transition: border-color 0.15s, background-color 0.15s;
     }
     .ticket-btn.selected {
@@ -247,7 +249,7 @@
     }
 
     /* Tlačidlá Platby */
-    .payment-row { display: flex; gap: 4px; margin-top: 2px; }
+    .payment-row { display: flex; gap: 4px; margin-top: 4px; }
     .btn-pay {
       flex: 1;
       padding: 6px;
@@ -264,27 +266,10 @@
     .btn-pay-cash { border-color: #16a34a; color: var(--success); }
     .btn-pay-card { border-color: #2563eb; color: var(--primary); }
 
-    /* Štatistika (Pevná spodná lišta) */
-    .stats-row {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-    .stat-card {
-      flex: 1;
-      background: var(--panel);
-      padding: 6px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      text-align: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .stat-card.revenue { border-color: var(--success); background: rgba(22, 163, 74, 0.05); }
-    .stat-card.count { border-color: var(--primary); background: rgba(37, 99, 235, 0.05); }
-    .stat-title { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .stat-val { font-size: 1.05rem; font-weight: 800; color: var(--text); }
-    .stat-card.revenue .stat-val { color: var(--success); }
-    .stat-card.count .stat-val { color: var(--primary); }
+    /* Štatistika */
+    .stats-row { display: flex; gap: 6px; }
+    .stat-card { flex: 1; background: var(--panel); padding: 4px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-val { font-size: 0.9rem; font-weight: 700; color: var(--primary); }
   </style>
 </head>
 <body>
@@ -298,7 +283,6 @@
     </div>
   </header>
 
-  <!-- Palubný Displej -->
   <div class="dashboard-panel">
     <div class="display-screen">
       <div class="disp-row">
@@ -327,7 +311,6 @@
     </button>
   </div>
 
-  <!-- Mapa -->
   <div class="dashboard-panel map-panel">
     <div class="section-title">Mapa dvora</div>
     <div class="map-box" id="map">
@@ -344,7 +327,6 @@
     </div>
   </div>
 
-  <!-- Lístky -->
   <div class="dashboard-panel tickets-panel">
     <div>
       <div class="section-title">Cieľová zastávka lístka</div>
@@ -354,20 +336,21 @@
       <div class="ticket-grid" id="ticket-grid"></div>
     </div>
 
-    <div class="payment-row">
-      <button class="btn-pay btn-pay-cash" onclick="processPayment('Hotovosť')">💵 Hotovosť</button>
-      <button class="btn-pay btn-pay-card" onclick="processPayment('Karta')">💳 Karta</button>
+    <div>
+      <div class="payment-row">
+        <button class="btn-pay btn-pay-cash" onclick="processPayment('Hotovosť')">💵 Hotovosť</button>
+        <button class="btn-pay btn-pay-card" onclick="processPayment('Karta')">💳 Karta</button>
+      </div>
     </div>
   </div>
 
-  <!-- Štatistika Predaja -->
   <div class="stats-row">
-    <div class="stat-card count">
-      <div class="stat-title">Predané lístky</div>
+    <div class="stat-card">
+      <div style="font-size:0.6rem; color:var(--text-muted)">Predané lístky</div>
       <div class="stat-val" id="stat-count">0 ks</div>
     </div>
-    <div class="stat-card revenue">
-      <div class="stat-title">Celková tržba</div>
+    <div class="stat-card">
+      <div style="font-size:0.6rem; color:var(--text-muted)">Celková tržba</div>
       <div class="stat-val" id="stat-revenue">0.00 €</div>
     </div>
   </div>
@@ -382,6 +365,7 @@
     "Železničná stanica": { x: 18, y: 50 }
   };
 
+  // Poradie zastávok podľa požiadavky
   const orderedStopsList = [
     "Garáž",
     "Pri altánku",
@@ -396,6 +380,7 @@
     "N91": ["Garáž", "Pri altánku", "Brána", "Pri schodoch", "Garáž"]
   };
 
+  // Základné tarifné koeficienty pre jednotlivé typy lístkov
   const baseTicketTypes = [
     { id: 0, name: "Obyčajný", baseRate: 0.40, isFree: false },
     { id: 1, name: "Žiak / Študent", baseRate: 0.20, isFree: false },
@@ -410,6 +395,8 @@
   ];
 
   let selectedTargetStop = "Pri altánku";
+
+  // Košík pre dočasne zvolené lístky { ticketId: count }
   let selectedTickets = {};
 
   let currentRoute = null;
@@ -438,17 +425,15 @@
   }
 
   function playSound(freq, duration) {
-    try {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.frequency.value = freq;
-      osc.start();
-      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-      osc.stop(audioCtx.currentTime + duration);
-    } catch(e){}
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = freq;
+    osc.start();
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    osc.stop(audioCtx.currentTime + duration);
   }
 
   function playTicketPrintSound() {
@@ -514,6 +499,7 @@
     renderTickets();
   }
 
+  // Výpočet zónovej vzdialenosti pre odlišné ceny podľa cieľovej zastávky
   function calculateTicketPrice(ticketType) {
     if (ticketType.isFree) return 0.00;
 
@@ -525,10 +511,10 @@
     if (toIdx === -1) toIdx = 1;
 
     let distance = Math.abs(toIdx - fromIdx);
-    if (distance === 0) distance = 1;
+    if (distance === 0) distance = 1; // Minimálna 1 zóna
 
     let finalPrice = ticketType.baseRate * (distance + 1);
-    return Math.round(finalPrice * 20) / 20;
+    return Math.round(finalPrice * 20) / 20; // Zaokrúhlenie na 0.05€
   }
 
   function renderTickets() {
@@ -587,7 +573,6 @@
     revenue += totalBatchPrice;
     count += totalBatchCount;
 
-    // Prispôsobený zápis do štatistických pole
     document.getElementById('stat-revenue').innerText = revenue.toFixed(2) + ' €';
     document.getElementById('stat-count').innerText = count + ' ks';
 
@@ -691,7 +676,7 @@
     renderTickets();
 
     if (next) {
-      const durationSec = Math.floor(Math.random() * 16) + 15;
+      const durationSec = Math.floor(Math.random() * 16) + 15; // 15-30s
       startTimer(durationSec);
       animateBusBetween(curr, next, durationSec);
     } else {
