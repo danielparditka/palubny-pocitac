@@ -3,361 +3,251 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Palubný Počítač Autobusu - IBIS System</title>
+  <title>Palubný Počítač Autobusu - IBIS</title>
   <style>
     :root {
-      --bg-color: #e0e5ec;
-      --panel-bg: #f0f3f8;
-      --text-color: #1a202c;
-      --accent-color: #2b6cb0;
-      --success-color: #2f855a;
-      --danger-color: #c53030;
-      --warning-color: #dd6b20;
-      --border-color: #cbd5e0;
-      --shadow: 0 8px 16px rgba(0,0,0,0.1);
-      --screen-bg: #1a2421;
-      --screen-text: #00ff66;
+      --bg: #1e2530;
+      --panel: #2a3443;
+      --accent: #3182ce;
+      --accent-hover: #2b6cb0;
+      --text: #ffffff;
+      --text-muted: #a0aec0;
+      --border: #3d4b5e;
+      --success: #38a169;
+      --danger: #e53e3e;
+      --warning: #dd6b20;
+      --route-line: #f6e05e;
     }
 
     body.night-mode {
-      --bg-color: #121212;
-      --panel-bg: #1e1e1e;
-      --text-color: #e0e0e0;
-      --accent-color: #3182ce;
-      --border-color: #333333;
-      --shadow: 0 8px 16px rgba(0,0,0,0.5);
-      --screen-bg: #050b08;
-      --screen-text: #00cc52;
+      --bg: #12161f;
+      --panel: #18202c;
+      --border: #283344;
+      --route-line: #ecc94b;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      transition: background-color 0.3s, color 0.3s;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 20px; transition: background 0.3s; }
+    .container { max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 20px; }
 
     header {
       grid-column: 1 / -1;
-      background-color: var(--panel-bg);
-      padding: 15px 25px;
-      border-radius: 12px;
-      box-shadow: var(--shadow);
+      background: var(--panel);
+      padding: 15px 20px;
+      border-radius: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border: 1px solid var(--border-color);
-    }
-
-    .status-bar {
-      display: flex;
-      gap: 20px;
-      font-weight: bold;
+      border: 1px solid var(--border);
     }
 
     .btn {
-      padding: 10px 18px;
+      padding: 10px 16px;
       border: none;
-      border-radius: 8px;
-      font-weight: bold;
+      border-radius: 6px;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      background: var(--accent);
+      color: white;
+      transition: background 0.2s;
     }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-success { background: var(--success); }
+    .btn-danger { background: var(--danger); }
+    .btn-warning { background: var(--warning); }
 
-    .btn:active {
-      transform: scale(0.98);
-    }
-
-    .btn-primary { background-color: var(--accent-color); color: white; }
-    .btn-success { background-color: var(--success-color); color: white; }
-    .btn-danger { background-color: var(--danger-color); color: white; }
-    .btn-warning { background-color: var(--warning-color); color: white; }
-
-    /* Palubný displej */
-    .dashboard-display {
-      background-color: var(--screen-bg);
-      color: var(--screen-text);
+    /* Palubný Displej */
+    .dashboard-panel {
+      background: var(--panel);
+      border-radius: 10px;
       padding: 20px;
-      border-radius: 12px;
-      font-family: 'Courier New', Courier, monospace;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
-      margin-bottom: 20px;
-      border: 3px solid #333;
-    }
-
-    .display-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 1.2rem;
-      margin-bottom: 10px;
-    }
-
-    .display-main {
-      font-size: 1.8rem;
-      text-align: center;
-      margin: 15px 0;
-      font-weight: bold;
-      text-shadow: 0 0 5px var(--screen-text);
-    }
-
-    .panel {
-      background-color: var(--panel-bg);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       margin-bottom: 20px;
     }
-
-    .panel-title {
-      font-size: 1.2rem;
-      font-weight: bold;
+    .display-screen {
+      background: #101721;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 15px 20px;
       margin-bottom: 15px;
-      border-bottom: 2px solid var(--accent-color);
-      padding-bottom: 5px;
     }
+    .disp-row { display: flex; justify-content: space-between; font-size: 0.95rem; color: var(--text-muted); margin-bottom: 8px; }
+    .disp-main { font-size: 1.6rem; font-weight: 700; color: #4299e1; text-align: center; margin: 10px 0; }
 
-    /* Mriežka lístkov */
-    .ticket-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 12px;
-    }
+    /* Controls */
+    .controls-row { display: flex; gap: 10px; margin-bottom: 15px; }
+    select { flex: 1; padding: 10px; border-radius: 6px; background: #1a202c; color: white; border: 1px solid var(--border); font-size: 1rem; }
 
+    /* Lístky mriežka */
+    .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; color: var(--text-muted); }
+    .ticket-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .ticket-btn {
-      background-color: var(--panel-bg);
-      border: 2px solid var(--accent-color);
-      color: var(--text-color);
+      background: #232d3b;
+      border: 1px solid var(--border);
+      color: white;
       padding: 12px;
       border-radius: 8px;
       cursor: pointer;
       text-align: left;
-      transition: all 0.2s;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 80px;
+      height: 75px;
+      transition: border 0.2s;
     }
+    .ticket-btn:hover { border-color: var(--accent); }
+    .ticket-name { font-size: 0.85rem; font-weight: 600; }
+    .ticket-price { font-size: 1.1rem; color: #68d391; font-weight: 700; align-self: flex-end; }
 
-    .ticket-btn:hover {
-      background-color: var(--accent-color);
-      color: white;
-    }
-
-    .ticket-btn .title { font-size: 0.85rem; font-weight: bold; }
-    .ticket-btn .price { font-size: 1.1rem; align-self: flex-end; }
-
-    /* Mapa a zastávky */
-    .map-container {
-      height: 300px;
-      background-color: #242f3e;
-      border-radius: 12px;
+    /* Mapa */
+    .map-box {
+      background: #151c24;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      height: 380px;
       position: relative;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid var(--border-color);
     }
+    .compass { position: absolute; font-size: 0.75rem; color: var(--text-muted); font-weight: 700; }
+    .compass.n { top: 10px; left: 50%; transform: translateX(-50%); }
+    .compass.s { bottom: 10px; left: 50%; transform: translateX(-50%); }
+    .compass.e { right: 10px; top: 50%; transform: translateY(-50%); }
+    .compass.w { left: 10px; top: 50%; transform: translateY(-50%); }
 
-    .compass-point {
-      position: absolute;
-      color: #fff;
-      font-weight: bold;
-      font-size: 0.9rem;
-      background: rgba(0,0,0,0.6);
-      padding: 4px 8px;
-      border-radius: 4px;
-    }
-    .north { top: 10px; }
-    .south { bottom: 10px; }
-    .east { right: 10px; }
-    .west { left: 10px; }
+    svg.route-svg { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+    polyline.route-path { fill: none; stroke: var(--route-line); stroke-width: 4; stroke-dasharray: 6 4; opacity: 0.8; }
 
-    .stop-node {
+    .stop-dot {
       position: absolute;
-      width: 14px;
-      height: 14px;
-      background: #e53e3e;
+      width: 12px; height: 12px;
+      background: #e2e8f0;
       border-radius: 50%;
-      border: 2px solid white;
       transform: translate(-50%, -50%);
+      z-index: 2;
     }
-
-    .stop-node.active {
-      background: #38a169;
-      scale: 1.4;
-      box-shadow: 0 0 10px #38a169;
-    }
-
-    .stop-label {
+    .stop-dot.active { background: #48bb78; box-shadow: 0 0 10px #48bb78; }
+    .stop-txt {
       position: absolute;
-      color: white;
       font-size: 0.75rem;
-      background: rgba(0,0,0,0.7);
-      padding: 2px 5px;
-      border-radius: 3px;
+      color: #cbd5e0;
+      background: rgba(0,0,0,0.6);
+      padding: 2px 6px;
+      border-radius: 4px;
+      transform: translate(-50%, -190%);
       white-space: nowrap;
-      transform: translate(-50%, -180%);
+      z-index: 2;
     }
 
-    .stats-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 15px;
+    #bus-marker {
+      position: absolute;
+      font-size: 1.5rem;
+      transform: translate(-50%, -50%);
+      transition: left 0.5s linear, top 0.5s linear;
+      z-index: 3;
     }
 
-    .stat-box {
-      background-color: rgba(0,0,0,0.05);
-      padding: 10px;
-      border-radius: 8px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 1.4rem;
-      font-weight: bold;
-      color: var(--accent-color);
-    }
-
-    select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      background-color: var(--panel-bg);
-      color: var(--text-color);
-      margin-bottom: 15px;
-      font-size: 1rem;
-    }
+    /* Štatistika */
+    .stats-row { display: flex; gap: 10px; margin-top: 15px; }
+    .stat-card { flex: 1; background: var(--panel); padding: 12px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+    .stat-val { font-size: 1.3rem; font-weight: 700; color: #4299e1; margin-top: 4px; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <h1>🚌 Palubný Počítač IBIS</h1>
-    <div class="status-bar">
-      <span id="clock">00:00:00</span>
+    <h2>🚌 IBIS Palubný Počítač</h2>
+    <div>
+      <span id="clock" style="margin-right: 15px; font-weight: 600;">00:00:00</span>
       <button class="btn btn-warning" onclick="toggleNightMode()">🌙 Nočný Režim</button>
     </div>
   </header>
 
-  <!-- Ľavý stĺpec: Riadenie linky a Lístky -->
-  <div class="main-content">
-    
-    <!-- Displej palubného počítača -->
-    <div class="dashboard-display">
-      <div class="display-row">
-        <span id="disp-line">LINKA: --</span>
-        <span id="disp-delay">MEŠKANIE: 0s</span>
+  <!-- Ľavá strana -->
+  <div>
+    <div class="dashboard-panel">
+      <div class="display-screen">
+        <div class="disp-row">
+          <span id="disp-line">LINKA: --</span>
+          <span id="disp-delay">MEŠKANIE: 0s</span>
+        </div>
+        <div class="display-main" id="disp-stop">VYBERTE LINKU</div>
+        <div class="disp-row">
+          <span id="disp-next">NASLEDUJE: --</span>
+          <span id="disp-time">PLÁN: --</span>
+        </div>
       </div>
-      <div class="display-main" id="disp-current-stop">VYBERTE LINKU</div>
-      <div class="display-row">
-        <span id="disp-next-stop">NASLEDUJE: --</span>
-        <span id="disp-time-diff">PLÁN: --</span>
-      </div>
-    </div>
 
-    <!-- Panel riadenia -->
-    <div class="panel">
-      <div class="panel-title">Riadenie Jazdy</div>
-      <div style="display: flex; gap: 15px; align-items: center;">
+      <div class="controls-row">
         <select id="line-select">
           <option value="">-- Vyberte linku --</option>
-          <option value="101">Linka 101: Dvorný okruh (Garáž -> Okruh -> Garáž)</option>
-          <option value="N99">Linka N99: Nočná záloha (Garáž -> Sektor Noc -> Garáž)</option>
+          <option value="101">Linka 101 - Dvorný okruh</option>
+          <option value="201">Linka 201 - Expres</option>
+          <option value="N91">Linka N91 - Nočná</option>
         </select>
-        <button class="btn btn-primary" onclick="startRoute()" id="btn-start">Spustiť Linku</button>
+        <button class="btn" id="btn-start" onclick="startLine()">Spustiť Linku</button>
       </div>
 
-      <div style="margin-top: 15px; display: flex; gap: 10px;">
-        <button class="btn btn-success" style="flex: 2; font-size: 1.2rem; padding: 15px;" onclick="announceArrival()" id="btn-arrival" disabled>
-          🔔 Príchod na zastávku / Hásiť
-        </button>
-      </div>
+      <button class="btn btn-success" id="btn-arrive" style="width: 100%; padding: 12px; font-size: 1.1rem;" onclick="announceArrival()" disabled>
+        🔔 Hlásiť príchod
+      </button>
     </div>
 
-    <!-- Panel lístkov -->
-    <div class="panel">
-      <div class="panel-title">Predaj Cestovných Lístkov</div>
-      <div class="ticket-grid" id="ticket-buttons">
-        <!-- Generované pomocou JS -->
-      </div>
+    <div class="dashboard-panel">
+      <div class="section-title">Predaj lístkov</div>
+      <div class="ticket-grid" id="ticket-grid"></div>
     </div>
   </div>
 
-  <!-- Pravý stĺpec: Mapa a Pokladňa -->
-  <div class="sidebar">
-    
-    <!-- Mapa -->
-    <div class="panel">
-      <div class="panel-title">Mapa Siete Zastávok</div>
-      <div class="map-container" id="map">
-        <div class="compass-point north">N (Sever)</div>
-        <div class="compass-point south">S (Juh)</div>
-        <div class="compass-point east">E (Východ)</div>
-        <div class="compass-point west">W (Západ)</div>
-        <!-- Zastávky generované dynamicky -->
+  <!-- Pravá strana -->
+  <div>
+    <div class="dashboard-panel">
+      <div class="section-title">Mapa dvora</div>
+      <div class="map-box" id="map">
+        <div class="compass n">SEVER (Brána)</div>
+        <div class="compass s">JUH (Garáž)</div>
+        <div class="compass e">VÝCHOD (Altánok)</div>
+        <div class="compass w">ZÁPAD (Stanica)</div>
+
+        <svg class="route-svg">
+          <polyline id="route-line" class="route-path" points="" />
+        </svg>
+
+        <div id="bus-marker">🚌</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div style="font-size:0.8rem; color:var(--text-muted)">Predané lístky</div>
+          <div class="stat-val" id="stat-count">0 ks</div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size:0.8rem; color:var(--text-muted)">Celková tržba</div>
+          <div class="stat-val" id="stat-revenue">0.00 €</div>
+        </div>
       </div>
     </div>
-
-    <!-- Pokladňa & Štatistiky -->
-    <div class="panel">
-      <div class="panel-title">Tržba a Štatistika</div>
-      <div class="stats-container">
-        <div class="stat-box">
-          <div>Predané Lístky</div>
-          <div class="stat-value" id="stat-count">0 ks</div>
-        </div>
-        <div class="stat-box">
-          <div>Celková Tržba</div>
-          <div class="stat-value" id="stat-revenue">0.00 €</div>
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>
 
 <script>
-  // Dynamic Data & Route Definitions
-  const stopsData = {
-    "Garáž": { x: 50, y: 50, side: "Center" },
-    "Pri Altánku": { x: 50, y: 20, side: "Sever" },
-    "Brána": { x: 80, y: 50, side: "Východ" },
-    "Dvorská": { x: 50, y: 80, side: "Juh" },
-    "Západná": { x: 20, y: 50, side: "Západ" },
-    "Nočná 1": { x: 30, y: 30, side: "Severo-Západ" },
-    "Nočná 2": { x: 70, y: 70, side: "Juhovýchod" }
+  // Zastávky a ich presné súradnice v % na mape
+  const stops = {
+    "Garáž": { x: 50, y: 85 },
+    "Pri schodoch": { x: 50, y: 50 },
+    "Pri altánku": { x: 80, y: 50 },
+    "Brána": { x: 50, y: 15 },
+    "Železničná stanica": { x: 20, y: 50 }
   };
 
+  // Trasy liniek
   const routes = {
-    "101": ["Garáž", "Pri Altánku", "Brána", "Dvorská", "Západná", "Garáž"],
-    "N99": ["Garáž", "Nočná 1", "Pri Altánku", "Nočná 2", "Garáž"]
+    "101": ["Garáž", "Pri altánku", "Brána", "Pri schodoch", "Železničná stanica", "Garáž"],
+    "201": ["Garáž", "Železničná stanica", "Brána", "Garáž"],
+    "N91": ["Garáž", "Pri altánku", "Brána", "Pri schodoch", "Garáž"]
   };
 
-  const ticketTypes = [
+  const tickets = [
     { name: "Obyčajný", price: 1.00 },
     { name: "Žiak / Študent", price: 0.50 },
     { name: "Osobitné nad 70 r.", price: 0.20 },
@@ -365,226 +255,210 @@
     { name: "Dieťa 0-6 rokov", price: 0.00 },
     { name: "Dieťa 6-18 rokov", price: 0.50 },
     { name: "Zľavnené - ŤZP", price: 0.30 },
-    { name: "Osobné - Zamestnanec", price: 0.00 },
-    { name: "Osobné - Dieťa zamestnanca", price: 0.00 },
-    { name: "Osobné - Tehotná žena", price: 0.00 }
+    { name: "Osobitné - Zamestnanec", price: 0.00 },
+    { name: "Osobitné - Dieťa zamestnanca", price: 0.00 },
+    { name: "Osobitné - Tehotná žena", price: 0.00 }
   ];
 
-  // Application State
   let currentRoute = null;
-  let currentStopIndex = 0;
-  let totalRevenue = 0;
-  let totalTickets = 0;
-  let legStartTime = null;
-  let plannedLegTime = 0;
-  let delaySeconds = 0;
+  let currentIndex = 0;
+  let revenue = 0;
+  let count = 0;
+  let startTime = 0;
+  let plannedSecs = 0;
+  let delay = 0;
+  let busAnimInterval = null;
 
-  // Audio Context pre zvuky
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-  function playBeep(freq = 800, duration = 0.15) {
+  function playSound(freq, duration) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.frequency.value = freq;
     osc.start();
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
     osc.stop(audioCtx.currentTime + duration);
   }
 
-  function playGong(callback) {
-    playBeep(600, 0.2);
-    setTimeout(() => {
-      playBeep(900, 0.4);
-      if (callback) setTimeout(callback, 500);
-    }, 200);
+  function playGong(cb) {
+    playSound(600, 0.15);
+    setTimeout(() => { playSound(900, 0.3); if (cb) setTimeout(cb, 400); }, 150);
   }
 
-  // Voice synthesis (Text-To-Speech)
-  function speak(text, callback) {
+  function speak(text, cb) {
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // Zruš predchádzajúce hlásenia
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'sk-SK';
-      utterance.rate = 0.9;
-      if (callback) {
-        utterance.onend = callback;
-      }
-      window.speechSynthesis.speak(utterance);
-    } else if (callback) {
-      callback();
-    }
-  }
-
-  // Clock
-  setInterval(() => {
-    const now = new Date();
-    document.getElementById('clock').innerText = now.toLocaleTimeString('sk-SK');
-  }, 1000);
-
-  // Init UI
-  function initUI() {
-    renderTickets();
-    renderMap();
-  }
-
-  function renderTickets() {
-    const container = document.getElementById('ticket-buttons');
-    container.innerHTML = '';
-    ticketTypes.forEach(t => {
-      const btn = document.createElement('button');
-      btn.className = 'ticket-btn';
-      btn.innerHTML = `<span class="title">${t.name}</span><span class="price">${t.price.toFixed(2)} €</span>`;
-      btn.onclick = () => issueTicket(t);
-      container.appendChild(btn);
-    });
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'sk-SK';
+      if (cb) u.onend = cb;
+      window.speechSynthesis.speak(u);
+    } else if (cb) cb();
   }
 
   function renderMap() {
     const map = document.getElementById('map');
-    // Clear old stops
-    const oldStops = map.querySelectorAll('.stop-node, .stop-label');
-    oldStops.forEach(el => el.remove());
+    Object.keys(stops).forEach(s => {
+      const pos = stops[s];
+      const dot = document.createElement('div');
+      dot.className = 'stop-dot';
+      dot.id = 'dot-' + s.replace(/\s+/g, '');
+      dot.style.left = pos.x + '%';
+      dot.style.top = pos.y + '%';
 
-    Object.keys(stopsData).forEach(stopName => {
-      const info = stopsData[stopName];
-      
-      const node = document.createElement('div');
-      node.className = 'stop-node';
-      node.id = `node-${stopName.replace(/\s+/g, '')}`;
-      node.style.left = `${info.x}%`;
-      node.style.top = `${info.y}%`;
+      const txt = document.createElement('div');
+      txt.className = 'stop-txt';
+      txt.style.left = pos.x + '%';
+      txt.style.top = pos.y + '%';
+      txt.innerText = s;
 
-      const label = document.createElement('div');
-      label.className = 'stop-label';
-      label.style.left = `${info.x}%`;
-      label.style.top = `${info.y}%`;
-      label.innerText = stopName;
-
-      map.appendChild(node);
-      map.appendChild(label);
+      map.appendChild(dot);
+      map.appendChild(txt);
     });
   }
 
-  function updateMapHighlight(currentStop) {
-    document.querySelectorAll('.stop-node').forEach(el => el.classList.remove('active'));
-    if (currentStop) {
-      const activeNode = document.getElementById(`node-${currentStop.replace(/\s+/g, '')}`);
-      if (activeNode) activeNode.classList.add('active');
-    }
+  function renderTickets() {
+    const grid = document.getElementById('ticket-grid');
+    grid.innerHTML = '';
+    tickets.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'ticket-btn';
+      btn.innerHTML = `<span class="ticket-name">${t.name}</span><span class="ticket-price">${t.price.toFixed(2)} €</span>`;
+      btn.onclick = () => {
+        playSound(1100, 0.1);
+        revenue += t.price;
+        count++;
+        document.getElementById('stat-revenue').innerText = revenue.toFixed(2) + ' €';
+        document.getElementById('stat-count').innerText = count + ' ks';
+      };
+      grid.appendChild(btn);
+    });
   }
 
-  function issueTicket(ticket) {
-    playBeep(1200, 0.1); // Zvuk vytlačenia lístka
-    totalRevenue += ticket.price;
-    totalTickets++;
-    document.getElementById('stat-revenue').innerText = totalRevenue.toFixed(2) + ' €';
-    document.getElementById('stat-count').innerText = totalTickets + ' ks';
-  }
+  function startLine() {
+    const lineId = document.getElementById('line-select').value;
+    if (!lineId) return alert('Vyberte linku!');
 
-  function startRoute() {
-    const lineVal = document.getElementById('line-select').value;
-    if (!lineVal) {
-      alert("Vyberte prosím linku zo zoznamu!");
-      return;
-    }
+    currentRoute = routes[lineId];
+    currentIndex = 0;
+    delay = 0;
 
-    currentRoute = routes[lineVal];
-    currentStopIndex = 0;
-    delaySeconds = 0;
-
-    document.getElementById('disp-line').innerText = `LINKA: ${lineVal}`;
+    document.getElementById('disp-line').innerText = 'LINKA: ' + lineId;
     document.getElementById('btn-start').disabled = true;
     document.getElementById('line-select').disabled = true;
-    document.getElementById('btn-arrival').disabled = false;
+    document.getElementById('btn-arrive').disabled = false;
 
-    processCurrentStop();
+    drawRouteLine();
+    moveBusToStop(currentRoute[0]);
+    nextLeg();
   }
 
-  function processCurrentStop() {
-    const currentStop = currentRoute[currentStopIndex];
-    const nextStop = currentRoute[currentStopIndex + 1] || "Konečná (Garáž)";
+  function drawRouteLine() {
+    const poly = document.getElementById('route-line');
+    const points = currentRoute.map(s => {
+      const p = stops[s];
+      return `${p.x * 3.8},${p.y * 3.8}`; // Prepočet na SVG súradnice
+    }).join(' ');
+    poly.setAttribute('points', points);
+  }
 
-    document.getElementById('disp-current-stop').innerText = currentStop;
-    document.getElementById('disp-next-stop').innerText = `NASLEDUJE: ${nextStop}`;
-    updateMapHighlight(currentStop);
+  function moveBusToStop(stopName) {
+    const pos = stops[stopName];
+    const bus = document.getElementById('bus-marker');
+    bus.style.left = pos.x + '%';
+    bus.style.top = pos.y + '%';
 
-    // Vypočítaj náhodný plánovaný čas pre nový úsek (15-35s)
-    plannedLegTime = Math.floor(Math.random() * (35 - 15 + 1)) + 15;
-    document.getElementById('disp-time-diff').innerText = `PLÁN ÚSEKU: ${plannedLegTime}s`;
+    document.querySelectorAll('.stop-dot').forEach(d => d.classList.remove('active'));
+    const activeDot = document.getElementById('dot-' + stopName.replace(/\s+/g, ''));
+    if (activeDot) activeDot.classList.add('active');
+  }
 
-    legStartTime = Date.now();
+  function animateBusBetween(fromStop, toStop, durationSec) {
+    if (busAnimInterval) clearInterval(busAnimInterval);
+    const from = stops[fromStop];
+    const to = stops[toStop];
+    const bus = document.getElementById('bus-marker');
+    
+    let startTime = Date.now();
+    busAnimInterval = setInterval(() => {
+      let progress = (Date.now() - startTime) / (durationSec * 1000);
+      if (progress >= 1) {
+        progress = 1;
+        clearInterval(busAnimInterval);
+      }
+      let currX = from.x + (to.x - from.x) * progress;
+      let currY = from.y + (to.y - from.y) * progress;
+      bus.style.left = currX + '%';
+      bus.style.top = currY + '%';
+    }, 50);
+  }
+
+  function nextLeg() {
+    const curr = currentRoute[currentIndex];
+    const next = currentRoute[currentIndex + 1];
+
+    document.getElementById('disp-stop').innerText = curr;
+    document.getElementById('disp-next').innerText = 'NASLEDUJE: ' + (next || 'Konečná');
+
+    if (next) {
+      plannedSecs = Math.floor(Math.random() * 21) + 15; // 15 až 35 sekúnd
+      document.getElementById('disp-time').innerText = 'PLÁN: ' + plannedSecs + 's';
+      startTime = Date.now();
+      animateBusBetween(curr, next, plannedSecs);
+    } else {
+      document.getElementById('disp-time').innerText = 'PLÁN: --';
+    }
   }
 
   function announceArrival() {
     if (!currentRoute) return;
 
-    // Vypočítať čas jazdy
-    const elapsedSeconds = Math.round((Date.now() - legStartTime) / 1000);
-    const diff = elapsedSeconds - plannedLegTime;
-    delaySeconds += diff;
+    if (currentIndex < currentRoute.length - 1) {
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      const diff = elapsed - plannedSecs;
+      delay += diff;
 
-    // Aktualizovať zobrazenie meškania
-    const delayEl = document.getElementById('disp-delay');
-    if (delaySeconds > 0) {
-      delayEl.innerText = `MEŠKANIE: +${delaySeconds}s`;
-      delayEl.style.color = '#ff4d4d';
-    } else if (delaySeconds < 0) {
-      delayEl.innerText = `NADBEH: ${delaySeconds}s`;
-      delayEl.style.color = '#ffcc00';
-    } else {
-      delayEl.innerText = `MEŠKANIE: 0s`;
-      delayEl.style.color = 'var(--screen-text)';
-    }
+      const delayEl = document.getElementById('disp-delay');
+      delayEl.innerText = delay >= 0 ? `MEŠKANIE: +${delay}s` : `NADBEH: ${delay}s`;
+      delayEl.style.color = delay > 0 ? '#fc8181' : (delay < 0 ? '#f6e05e' : '#cbd5e0');
 
-    const currentStop = currentRoute[currentStopIndex];
-    currentStopIndex++;
+      currentIndex++;
+      const curr = currentRoute[currentIndex];
+      const next = currentRoute[currentIndex + 1];
+      const isEnd = currentIndex === currentRoute.length - 1;
 
-    const isEnd = currentStopIndex >= currentRoute.length - 1;
-    const nextStop = currentRoute[currentStopIndex];
+      moveBusToStop(curr);
 
-    // Hlásenie cez Gong a Voice
-    playGong(() => {
-      let speechText = currentStop + ".";
-      if (!isEnd) {
-        speechText += " Nasledujúca zastávka: " + nextStop + ".";
-      } else {
-        speechText += " Konečná zastávka. Prosíme vystúpte.";
-      }
-      
-      speak(speechText, () => {
-        if (isEnd) {
-          finishRoute();
-        } else {
-          processCurrentStop();
-        }
+      playGong(() => {
+        let msg = curr + ".";
+        if (!isEnd) msg += " Nasledujúca zastávka: " + next;
+        else msg += " Konečná zastávka. Prosíme vystúpte.";
+
+        speak(msg, () => {
+          if (isEnd) {
+            document.getElementById('disp-stop').innerText = "KONIEC LINKY";
+            document.getElementById('disp-next').innerText = "STANOVIŠTE: Garáž";
+            document.getElementById('btn-arrive').disabled = true;
+            document.getElementById('btn-start').disabled = false;
+            document.getElementById('line-select').disabled = false;
+            alert("Koniec linky! Môžete si vybrať ďalšiu linku.");
+          } else {
+            nextLeg();
+          }
+        });
       });
-    });
+    }
   }
 
-  function finishRoute() {
-    const finalStop = currentRoute[currentRoute.length - 1];
-    document.getElementById('disp-current-stop').innerText = "KONIEC LINKY";
-    document.getElementById('disp-next-stop').innerText = `STANOVIŠTE: ${finalStop}`;
-    updateMapHighlight(finalStop);
+  function toggleNightMode() { document.body.classList.toggle('night-mode'); }
 
-    alert("Linka bola úspešne dokončená! Môžete vybrať ďalšiu linku.");
+  setInterval(() => {
+    document.getElementById('clock').innerText = new Date().toLocaleTimeString('sk-SK');
+  }, 1000);
 
-    // Reset controls
-    document.getElementById('btn-start').disabled = false;
-    document.getElementById('line-select').disabled = false;
-    document.getElementById('btn-arrival').disabled = true;
-    currentRoute = null;
-  }
-
-  function toggleNightMode() {
-    document.body.classList.toggle('night-mode');
-  }
-
-  // Start app
-  window.onload = initUI;
+  window.onload = () => { renderMap(); renderTickets(); };
 </script>
 </body>
 </html>
