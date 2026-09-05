@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Palubný Počítač IBIS</title>
+  <title>Palubný Počítač EmTest</title>
   <style>
     :root {
       --bg: #f4f6f9;
@@ -35,13 +35,13 @@
       height: 100vh;
       max-width: 600px; /* Ideálna šírka pre mobil */
       margin: 0 auto;
-      padding: 8px;
-      gap: 8px;
+      padding: 6px;
+      gap: 6px;
     }
 
     header {
       background: var(--panel);
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-radius: 8px;
       display: flex;
       justify-content: space-between;
@@ -50,13 +50,13 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     header h2 { font-size: 1.1rem; color: var(--primary); font-weight: 700; }
-    #clock { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    #clock { font-size: 0.9rem; font-weight: 600; color: var(--text); }
 
     /* Palubný Displej */
     .dashboard-panel {
       background: var(--panel);
       border-radius: 8px;
-      padding: 10px;
+      padding: 8px;
       border: 1px solid var(--border);
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
@@ -65,29 +65,29 @@
       background: #0f172a;
       color: #ffffff;
       border-radius: 6px;
-      padding: 10px;
-      margin-bottom: 8px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
     }
-    .disp-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; }
-    .disp-main { font-size: 1.3rem; font-weight: 700; color: #38bdf8; text-align: center; margin: 4px 0; }
+    .disp-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; }
+    .disp-main { font-size: 1.2rem; font-weight: 700; color: #38bdf8; text-align: center; margin: 2px 0; }
 
     /* Ovládanie */
-    .controls-row { display: flex; gap: 6px; margin-bottom: 8px; }
-    select { flex: 1; padding: 8px; border-radius: 6px; background: #ffffff; color: var(--text); border: 1px solid var(--border); font-size: 0.9rem; font-weight: 600; }
+    .controls-row { display: flex; gap: 6px; margin-bottom: 6px; }
+    select { flex: 1; padding: 6px; border-radius: 6px; background: #ffffff; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; }
     
     .btn {
-      padding: 8px 12px;
+      padding: 6px 10px;
       border: none;
       border-radius: 6px;
       font-weight: 600;
       cursor: pointer;
       background: var(--primary);
       color: white;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-success { background: var(--success); }
-    .btn-arrive { width: 100%; padding: 10px; font-size: 1rem; }
+    .btn-arrive { width: 100%; padding: 8px; font-size: 0.95rem; }
 
     /* Mapa */
     .map-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
@@ -101,11 +101,11 @@
       box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
     }
     
-    .compass { position: absolute; font-size: 0.65rem; color: var(--text-muted); font-weight: 700; }
-    .compass.n { top: 4px; left: 50%; transform: translateX(-50%); }
-    .compass.s { bottom: 4px; left: 50%; transform: translateX(-50%); }
-    .compass.e { right: 4px; top: 50%; transform: translateY(-50%); }
-    .compass.w { left: 4px; top: 50%; transform: translateY(-50%); }
+    .compass { position: absolute; font-size: 0.6rem; color: var(--text-muted); font-weight: 700; }
+    .compass.n { top: 2px; left: 50%; transform: translateX(-50%); }
+    .compass.s { bottom: 2px; left: 50%; transform: translateX(-50%); }
+    .compass.e { right: 2px; top: 50%; transform: translateY(-50%); }
+    .compass.w { left: 2px; top: 50%; transform: translateY(-50%); }
 
     svg.route-svg { width: 100%; height: 100%; position: absolute; top: 0; left: 0; pointer-events: none; }
     polyline.route-path { fill: none; stroke: var(--route-line); stroke-width: 4; stroke-dasharray: 6 4; opacity: 0.8; }
@@ -121,57 +121,90 @@
     .stop-dot.active { background: var(--success); box-shadow: 0 0 8px var(--success); }
     .stop-txt {
       position: absolute;
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       font-weight: 600;
       color: #1e293b;
       background: rgba(255, 255, 255, 0.85);
-      padding: 1px 4px;
+      padding: 1px 3px;
       border-radius: 3px;
       border: 1px solid var(--border);
-      transform: translate(-50%, -170%);
+      transform: translate(-50%, -160%);
       white-space: nowrap;
       z-index: 2;
     }
 
     #bus-marker {
       position: absolute;
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       transform: translate(-50%, -50%);
       transition: left 0.1s linear, top 0.1s linear;
       z-index: 3;
     }
 
     /* Lístky */
-    .tickets-panel { height: 160px; overflow-y: auto; }
-    .section-title { font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-muted); text-transform: uppercase; }
-    .ticket-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .tickets-panel { height: 190px; display: flex; flex-direction: column; justify-content: space-between; }
+    .section-title { font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); text-transform: uppercase; }
+    .ticket-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; overflow-y: auto; max-height: 110px; padding-right: 2px; }
+    
     .ticket-btn {
       background: #f8fafc;
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
       color: var(--text);
-      padding: 6px 8px;
+      padding: 5px 8px;
       border-radius: 6px;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 600;
+      position: relative;
+      transition: border-color 0.15s, background-color 0.15s;
     }
-    .ticket-btn:active { background: #e2e8f0; }
+    .ticket-btn.selected {
+      border-color: var(--primary);
+      background-color: #eff6ff;
+    }
     .ticket-price { color: var(--success); font-weight: 700; }
+    .ticket-badge {
+      background: var(--primary);
+      color: white;
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 10px;
+      margin-left: 4px;
+      font-weight: 700;
+    }
+
+    /* Tlačidlá Platby */
+    .payment-row { display: flex; gap: 4px; margin-top: 4px; }
+    .btn-pay {
+      flex: 1;
+      padding: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      background: #ffffff;
+      color: var(--text);
+      transition: background 0.15s;
+    }
+    .btn-pay:hover { background: #e2e8f0; }
+    .btn-pay-cash { border-color: #16a34a; color: #15803d; }
+    .btn-pay-card { border-color: #2563eb; color: #1d4ed8; }
 
     /* Štatistika */
-    .stats-row { display: flex; gap: 8px; margin-top: 6px; }
-    .stat-card { flex: 1; background: var(--panel); padding: 6px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
-    .stat-val { font-size: 1rem; font-weight: 700; color: var(--primary); }
+    .stats-row { display: flex; gap: 6px; }
+    .stat-card { flex: 1; background: var(--panel); padding: 4px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-val { font-size: 0.9rem; font-weight: 700; color: var(--primary); }
   </style>
 </head>
 <body>
 
 <div class="app-container">
   <header>
-    <h2>🚌 IBIS Počítač</h2>
+    <h2>🚌 EmTest</h2>
     <span id="clock">00:00:00</span>
   </header>
 
@@ -223,18 +256,27 @@
 
   <!-- Lístky -->
   <div class="dashboard-panel tickets-panel">
-    <div class="section-title">Predaj lístkov</div>
-    <div class="ticket-grid" id="ticket-grid"></div>
+    <div>
+      <div class="section-title">Predaj lístkov</div>
+      <div class="ticket-grid" id="ticket-grid"></div>
+    </div>
+
+    <div>
+      <div class="payment-row">
+        <button class="btn-pay btn-pay-cash" onclick="processPayment('Hotovosť')">💵 Hotovosť</button>
+        <button class="btn-pay btn-pay-card" onclick="processPayment('Karta')">💳 Karta</button>
+      </div>
+    </div>
   </div>
 
   <!-- Štatistika -->
   <div class="stats-row">
     <div class="stat-card">
-      <div style="font-size:0.65rem; color:var(--text-muted)">Predané</div>
+      <div style="font-size:0.6rem; color:var(--text-muted)">Predané lístky</div>
       <div class="stat-val" id="stat-count">0 ks</div>
     </div>
     <div class="stat-card">
-      <div style="font-size:0.65rem; color:var(--text-muted)">Tržba</div>
+      <div style="font-size:0.6rem; color:var(--text-muted)">Celková tržba</div>
       <div class="stat-val" id="stat-revenue">0.00 €</div>
     </div>
   </div>
@@ -256,17 +298,20 @@
   };
 
   const tickets = [
-    { name: "Obyčajný", price: 1.00 },
-    { name: "Žiak / Študent", price: 0.50 },
-    { name: "Osobitné nad 70 r.", price: 0.20 },
-    { name: "Osobitné - Senior", price: 0.40 },
-    { name: "Dieťa 0-6 rokov", price: 0.00 },
-    { name: "Dieťa 6-18 rokov", price: 0.50 },
-    { name: "Zľavnené - ŤZP", price: 0.30 },
-    { name: "Osobitné - Zamestnanec", price: 0.00 },
-    { name: "Osobitné - Dieťa zamestnanca", price: 0.00 },
-    { name: "Osobitné - Tehotná žena", price: 0.00 }
+    { id: 0, name: "Obyčajný", price: 1.00 },
+    { id: 1, name: "Žiak / Študent", price: 0.50 },
+    { id: 2, name: "Osobitné nad 70 r.", price: 0.20 },
+    { id: 3, name: "Osobitné - Senior", price: 0.40 },
+    { id: 4, name: "Dieťa 0-6 rokov", price: 0.00 },
+    { id: 5, name: "Dieťa 6-18 rokov", price: 0.50 },
+    { id: 6, name: "Zľavnené - ŤZP", price: 0.30 },
+    { id: 7, name: "Osobitné - Zamestnanec", price: 0.00 },
+    { id: 8, name: "Osobitné - Dieťa zamestnanca", price: 0.00 },
+    { id: 9, name: "Osobitné - Tehotná žena", price: 0.00 }
   ];
+
+  // Košík pre dočasne zvolené lístky { ticketId: count }
+  let selectedTickets = {};
 
   let currentRoute = null;
   let currentIndex = 0;
@@ -288,6 +333,13 @@
     gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
     osc.stop(audioCtx.currentTime + duration);
+  }
+
+  function playTicketPrintSound() {
+    // Zvuk tiskárne lístka EmTest
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => playSound(1200 - i * 200, 0.05), i * 60);
+    }
   }
 
   function playGong(cb) {
@@ -332,16 +384,59 @@
     tickets.forEach(t => {
       const btn = document.createElement('button');
       btn.className = 'ticket-btn';
-      btn.innerHTML = `<span>${t.name}</span><span class="ticket-price">${t.price.toFixed(2)}€</span>`;
-      btn.onclick = () => {
-        playSound(1000, 0.08);
-        revenue += t.price;
-        count++;
-        document.getElementById('stat-revenue').innerText = revenue.toFixed(2) + ' €';
-        document.getElementById('stat-count').innerText = count + ' ks';
-      };
+      btn.id = 't-btn-' + t.id;
+      
+      const ticketCount = selectedTickets[t.id] || 0;
+      if (ticketCount > 0) btn.classList.add('selected');
+
+      btn.innerHTML = `
+        <span>${t.name}</span>
+        <div>
+          <span class="ticket-price">${t.price.toFixed(2)}€</span>
+          ${ticketCount > 0 ? `<span class="ticket-badge">${ticketCount}x</span>` : ''}
+        </div>
+      `;
+      
+      btn.onclick = () => selectTicket(t.id);
       grid.appendChild(btn);
     });
+  }
+
+  function selectTicket(id) {
+    playSound(900, 0.05);
+    selectedTickets[id] = (selectedTickets[id] || 0) + 1;
+    renderTickets();
+  }
+
+  function processPayment(type) {
+    let totalBatchCount = 0;
+    let totalBatchPrice = 0;
+
+    Object.keys(selectedTickets).forEach(id => {
+      const cnt = selectedTickets[id];
+      if (cnt > 0) {
+        totalBatchCount += cnt;
+        totalBatchPrice += tickets[id].price * cnt;
+      }
+    });
+
+    if (totalBatchCount === 0) {
+      alert("Najprv vyberte lístok kliknutím na tlačidlo lístka!");
+      return;
+    }
+
+    // Zvuk tlačenia lístka EmTest
+    playTicketPrintSound();
+
+    revenue += totalBatchPrice;
+    count += totalBatchCount;
+
+    document.getElementById('stat-revenue').innerText = revenue.toFixed(2) + ' €';
+    document.getElementById('stat-count').innerText = count + ' ks';
+
+    // Vynulovanie vybraných lístkov
+    selectedTickets = {};
+    renderTickets();
   }
 
   function startLine() {
@@ -362,9 +457,12 @@
   }
 
   function drawRouteLine() {
+    if (!currentRoute) return;
     const svg = document.getElementById('svg-map');
     const poly = document.getElementById('route-line');
     const rect = svg.getBoundingClientRect();
+
+    if (rect.width === 0 || rect.height === 0) return;
 
     const points = currentRoute.map(s => {
       const p = stops[s];
@@ -487,7 +585,7 @@
   window.onload = () => { 
     renderMap(); 
     renderTickets();
-    setTimeout(drawRouteLine, 200); 
+    setTimeout(drawRouteLine, 300); 
   };
 </script>
 </body>
