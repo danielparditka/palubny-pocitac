@@ -407,7 +407,13 @@
   let busAnimInterval = null;
   let timerInterval = null;
 
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  let audioCtx = null;
+
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+  }
 
   function toggleNightMode() {
     document.body.classList.toggle('night-mode');
@@ -425,15 +431,19 @@
   }
 
   function playSound(freq, duration) {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.frequency.value = freq;
-    osc.start();
-    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-    osc.stop(audioCtx.currentTime + duration);
+    initAudio();
+    if (!audioCtx) return;
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      osc.start();
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+      osc.stop(audioCtx.currentTime + duration);
+    } catch(e) {}
   }
 
   function playTicketPrintSound() {
@@ -449,12 +459,31 @@
 
   function speak(text, cb) {
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'sk-SK';
-      if (cb) u.onend = cb;
-      window.speechSynthesis.speak(u);
-    } else if (cb) cb();
+      window.speechSynthesis.cancel(); // Vyčistí rozhovor, ak niečo beží
+      setTimeout(() => {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'sk-SK';
+        u.rate = 0.95;
+        
+        let hasEnded = false;
+        const safeCb = () => {
+          if (!hasEnded) {
+            hasEnded = true;
+            if (cb) cb();
+          }
+        };
+
+        u.onend = safeCb;
+        u.onerror = safeCb;
+
+        window.speechSynthesis.speak(u);
+
+        // Poistka, ak by browser zlyhal pri onend udalošti
+        setTimeout(safeCb, 4500);
+      }, 50);
+    } else if (cb) {
+      cb();
+    }
   }
 
   function renderMap() {
@@ -478,13 +507,15 @@
     });
   }
 
-  // Dynamická filtrácia nadchádzajúcich zastávok podľa stavu linky
+  // Bezpečné získanie dostupných nadchádzajúcich zastávok
   function getAvailableStops() {
-    if (currentRoute && currentIndex < currentRoute.length - 1) {
-      // Vráti len nadchádzajúce zastávky aktívnej linky (od nasledujúcej až po konečnú)
-      return currentRoute.slice(currentIndex + 1);
+    if (currentRoute && Array.isArray(currentRoute)) {
+      if (currentIndex < currentRoute.length - 1) {
+        return currentRoute.slice(currentIndex + 1);
+      } else {
+        return [];
+      }
     }
-    // Mimo aktívnej linky alebo na konci zobrazí všetky zastávky
     return orderedStopsList;
   }
 
@@ -494,11 +525,16 @@
     
     const availableStops = getAvailableStops();
 
-    // Ak aktuálne vybraná zastávka už nie je v ponuke, prenos na prvú dostupnú
-    if (!availableStops.includes(selectedTargetStop) && availableStops.length > 0) {
-      selectedTargetStop = availableStops[0];
+    // Ak aktuálne vybraná zastávka už nie je v ponuke, nastaví prvá dostupnú
+    if (!availableStops.includes(selectedTargetStop)) {
+      selectedTargetStop = availableStops.length > 0 ? availableStops[0] : "";
     }
     
+    if (availableStops.length === 0) {
+      container.innerHTML = '<span style="font-size:0.7rem; color:var(--text-muted); padding:4px;">Žiadne ďalšie zastávky (Koniec linky)</span>';
+      return;
+    }
+
     availableStops.forEach(stopName => {
       const btn = document.createElement('button');
       btn.className = 'stop-select-btn';
@@ -528,10 +564,10 @@
     if (toIdx === -1) toIdx = 1;
 
     let distance = Math.abs(toIdx - fromIdx);
-    if (distance === 0) distance = 1; // Minimálna 1 zóna
+    if (distance === 0) distance = 1;
 
     let finalPrice = ticketType.baseRate * (distance + 1);
-    return Math.round(finalPrice * 20) / 20; // Zaokrúhlenie na 0.05€
+    return Math.round(finalPrice * 20) / 20;
   }
 
   function renderTickets() {
@@ -598,6 +634,7 @@
   }
 
   function startLine() {
+    initAudio();
     const lineId = document.getElementById('line-select').value;
     if (!lineId) return alert('Vyberte linku!');
 
@@ -634,6 +671,7 @@
 
   function moveBusToStop(stopName) {
     const pos = stops[stopName];
+    if (!pos) return;
     const bus = document.getElementById('bus-marker');
     bus.style.left = pos.x + '%';
     bus.style.top = pos.y + '%';
@@ -647,6 +685,7 @@
     if (busAnimInterval) clearInterval(busAnimInterval);
     const from = stops[fromStop];
     const to = stops[toStop];
+    if (!from || !to) return;
     const bus = document.getElementById('bus-marker');
     
     let startTime = Date.now();
@@ -704,6 +743,7 @@
   }
 
   function announceArrival() {
+    initAudio();
     if (!currentRoute) return;
 
     if (currentIndex < currentRoute.length - 1) {
@@ -730,6 +770,7 @@
             document.getElementById('line-select').disabled = false;
             
             // Obnoví plný zoznam zastávok po ukončení
+            currentRoute = null;
             renderStopsSelector();
             renderTickets();
             alert("Koniec linky! Môžete si vybrať ďalšiu linku.");
