@@ -190,9 +190,33 @@
     }
 
     /* Lístky */
-    .tickets-panel { height: 190px; display: flex; flex-direction: column; justify-content: space-between; }
+    .tickets-panel { height: 230px; display: flex; flex-direction: column; justify-content: space-between; }
     .section-title { font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); text-transform: uppercase; }
-    .ticket-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; overflow-y: auto; max-height: 110px; padding-right: 2px; }
+    
+    /* Zastávky pre lístky */
+    .stops-selector { display: flex; gap: 4px; margin-bottom: 6px; overflow-x: auto; padding-bottom: 2px; }
+    .stop-select-btn {
+      flex: 1;
+      padding: 4px 6px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .stop-select-btn.selected {
+      border-color: var(--primary);
+      background-color: rgba(37, 99, 235, 0.18);
+      color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .ticket-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; overflow-y: auto; max-height: 95px; padding-right: 2px; }
     
     .ticket-btn {
       background: var(--panel);
@@ -259,7 +283,6 @@
     </div>
   </header>
 
-  <!-- Palubný Displej -->
   <div class="dashboard-panel">
     <div class="display-screen">
       <div class="disp-row">
@@ -288,7 +311,6 @@
     </button>
   </div>
 
-  <!-- Mapa -->
   <div class="dashboard-panel map-panel">
     <div class="section-title">Mapa dvora</div>
     <div class="map-box" id="map">
@@ -305,9 +327,11 @@
     </div>
   </div>
 
-  <!-- Lístky -->
   <div class="dashboard-panel tickets-panel">
     <div>
+      <div class="section-title">Cieľová zastávka lístka</div>
+      <div class="stops-selector" id="ticket-stops-selector"></div>
+      
       <div class="section-title">Predaj lístkov</div>
       <div class="ticket-grid" id="ticket-grid"></div>
     </div>
@@ -320,7 +344,6 @@
     </div>
   </div>
 
-  <!-- Štatistika -->
   <div class="stats-row">
     <div class="stat-card">
       <div style="font-size:0.6rem; color:var(--text-muted)">Predané lístky</div>
@@ -342,24 +365,36 @@
     "Železničná stanica": { x: 18, y: 50 }
   };
 
+  // Poradie zastávok podľa požiadavky
+  const orderedStopsList = [
+    "Garáž",
+    "Pri altánku",
+    "Brána",
+    "Pri schodoch",
+    "Železničná stanica"
+  ];
+
   const routes = {
     "101": ["Garáž", "Pri altánku", "Brána", "Pri schodoch", "Železničná stanica", "Garáž"],
     "201": ["Garáž", "Železničná stanica", "Brána", "Garáž"],
     "N91": ["Garáž", "Pri altánku", "Brána", "Pri schodoch", "Garáž"]
   };
 
-  const tickets = [
-    { id: 0, name: "Obyčajný", price: 1.00 },
-    { id: 1, name: "Žiak / Študent", price: 0.50 },
-    { id: 2, name: "Osobitné nad 70 r.", price: 0.20 },
-    { id: 3, name: "Osobitné - Senior", price: 0.40 },
-    { id: 4, name: "Dieťa 0-6 rokov", price: 0.00 },
-    { id: 5, name: "Dieťa 6-18 rokov", price: 0.50 },
-    { id: 6, name: "Zľavnené - ŤZP", price: 0.30 },
-    { id: 7, name: "Osobitné - Zamestnanec", price: 0.00 },
-    { id: 8, name: "Osobitné - Dieťa zamestnanca", price: 0.00 },
-    { id: 9, name: "Osobitné - Tehotná žena", price: 0.00 }
+  // Základné tarifné koeficienty pre jednotlivé typy lístkov
+  const baseTicketTypes = [
+    { id: 0, name: "Obyčajný", baseRate: 0.40, isFree: false },
+    { id: 1, name: "Žiak / Študent", baseRate: 0.20, isFree: false },
+    { id: 2, name: "Osobitné nad 70 r.", baseRate: 0.10, isFree: false },
+    { id: 3, name: "Osobitné - Senior", baseRate: 0.15, isFree: false },
+    { id: 4, name: "Dieťa 0-6 rokov", baseRate: 0.00, isFree: true },
+    { id: 5, name: "Dieťa 6-18 rokov", baseRate: 0.20, isFree: false },
+    { id: 6, name: "Zľavnené - ŤZP", baseRate: 0.12, isFree: false },
+    { id: 7, name: "Osobitné - Zamestnanec", baseRate: 0.00, isFree: true },
+    { id: 8, name: "Osobitné - Dieťa zamestnanca", baseRate: 0.00, isFree: true },
+    { id: 9, name: "Osobitné - Tehotná žena", baseRate: 0.00, isFree: true }
   ];
+
+  let selectedTargetStop = "Pri altánku";
 
   // Košík pre dočasne zvolené lístky { ticketId: count }
   let selectedTickets = {};
@@ -402,7 +437,6 @@
   }
 
   function playTicketPrintSound() {
-    // Zvuk tlačiarne lístka EmTest
     for (let i = 0; i < 3; i++) {
       setTimeout(() => playSound(1200 - i * 200, 0.05), i * 60);
     }
@@ -444,10 +478,51 @@
     });
   }
 
+  function renderStopsSelector() {
+    const container = document.getElementById('ticket-stops-selector');
+    container.innerHTML = '';
+    
+    orderedStopsList.forEach(stopName => {
+      const btn = document.createElement('button');
+      btn.className = 'stop-select-btn';
+      if (stopName === selectedTargetStop) btn.classList.add('selected');
+      btn.innerText = stopName;
+      btn.onclick = () => selectTargetStop(stopName);
+      container.appendChild(btn);
+    });
+  }
+
+  function selectTargetStop(stopName) {
+    playSound(800, 0.04);
+    selectedTargetStop = stopName;
+    renderStopsSelector();
+    renderTickets();
+  }
+
+  // Výpočet zónovej vzdialenosti pre odlišné ceny podľa cieľovej zastávky
+  function calculateTicketPrice(ticketType) {
+    if (ticketType.isFree) return 0.00;
+
+    let currentStopName = (currentRoute && currentRoute[currentIndex]) ? currentRoute[currentIndex] : orderedStopsList[0];
+    let fromIdx = orderedStopsList.indexOf(currentStopName);
+    let toIdx = orderedStopsList.indexOf(selectedTargetStop);
+
+    if (fromIdx === -1) fromIdx = 0;
+    if (toIdx === -1) toIdx = 1;
+
+    let distance = Math.abs(toIdx - fromIdx);
+    if (distance === 0) distance = 1; // Minimálna 1 zóna
+
+    let finalPrice = ticketType.baseRate * (distance + 1);
+    return Math.round(finalPrice * 20) / 20; // Zaokrúhlenie na 0.05€
+  }
+
   function renderTickets() {
     const grid = document.getElementById('ticket-grid');
     grid.innerHTML = '';
-    tickets.forEach(t => {
+    
+    baseTicketTypes.forEach(t => {
+      const price = calculateTicketPrice(t);
       const btn = document.createElement('button');
       btn.className = 'ticket-btn';
       btn.id = 't-btn-' + t.id;
@@ -458,7 +533,7 @@
       btn.innerHTML = `
         <span>${t.name}</span>
         <div>
-          <span class="ticket-price">${t.price.toFixed(2)}€</span>
+          <span class="ticket-price">${price.toFixed(2)}€</span>
           ${ticketCount > 0 ? `<span class="ticket-badge">${ticketCount}x</span>` : ''}
         </div>
       `;
@@ -481,8 +556,10 @@
     Object.keys(selectedTickets).forEach(id => {
       const cnt = selectedTickets[id];
       if (cnt > 0) {
+        const t = baseTicketTypes.find(item => item.id == id);
+        const p = calculateTicketPrice(t);
         totalBatchCount += cnt;
-        totalBatchPrice += tickets[id].price * cnt;
+        totalBatchPrice += p * cnt;
       }
     });
 
@@ -491,7 +568,6 @@
       return;
     }
 
-    // Zvuk tlačenia lístka EmTest
     playTicketPrintSound();
 
     revenue += totalBatchPrice;
@@ -500,7 +576,6 @@
     document.getElementById('stat-revenue').innerText = revenue.toFixed(2) + ' €';
     document.getElementById('stat-count').innerText = count + ' ks';
 
-    // Vynulovanie vybraných lístkov
     selectedTickets = {};
     renderTickets();
   }
@@ -598,6 +673,8 @@
     document.getElementById('disp-stop').innerText = curr;
     document.getElementById('disp-next').innerText = 'NASLEDUJE: ' + (next || 'Konečná');
 
+    renderTickets();
+
     if (next) {
       const durationSec = Math.floor(Math.random() * 16) + 15; // 15-30s
       startTimer(durationSec);
@@ -651,6 +728,7 @@
   window.onload = () => { 
     initTheme();
     renderMap(); 
+    renderStopsSelector();
     renderTickets();
     setTimeout(drawRouteLine, 300); 
   };
