@@ -365,7 +365,6 @@
     "Železničná stanica": { x: 18, y: 50 }
   };
 
-  // Poradie zastávok podľa požiadavky
   const orderedStopsList = [
     "Garáž",
     "Pri altánku",
@@ -380,7 +379,6 @@
     "N91": ["Garáž", "Pri altánku", "Brána", "Pri schodoch", "Garáž"]
   };
 
-  // Základné tarifné koeficienty pre jednotlivé typy lístkov
   const baseTicketTypes = [
     { id: 0, name: "Obyčajný", baseRate: 0.40, isFree: false },
     { id: 1, name: "Žiak / Študent", baseRate: 0.20, isFree: false },
@@ -395,8 +393,6 @@
   ];
 
   let selectedTargetStop = "Pri altánku";
-
-  // Košík pre dočasne zvolené lístky { ticketId: count }
   let selectedTickets = {};
 
   let currentRoute = null;
@@ -408,10 +404,18 @@
   let timerInterval = null;
 
   let audioCtx = null;
+  let currentAudioSpeech = null;
 
   function initAudio() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    // Prebudenie Web Speech API pri prvej interakcii
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.resume();
     }
   }
 
@@ -454,35 +458,71 @@
 
   function playGong(cb) {
     playSound(600, 0.15);
-    setTimeout(() => { playSound(900, 0.3); if (cb) setTimeout(cb, 350); }, 150);
+    setTimeout(() => { 
+      playSound(900, 0.3); 
+      if (cb) setTimeout(cb, 400); 
+    }, 150);
   }
 
+  // Odolná funkcia pre reč s fallbackom
   function speak(text, cb) {
+    initAudio();
+
+    if (currentAudioSpeech) {
+      currentAudioSpeech.pause();
+      currentAudioSpeech = null;
+    }
+
+    let hasEnded = false;
+    const safeCb = () => {
+      if (!hasEnded) {
+        hasEnded = true;
+        if (cb) cb();
+      }
+    };
+
+    // Skúsime vstavanú Web Speech API
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // Vyčistí rozhovor, ak niečo beží
+      window.speechSynthesis.cancel(); // Vyčistiť frontu
+
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'sk-SK';
+      u.rate = 0.95;
+
+      // Vyhľadanie slovenského hlasu ak existuje
+      const voices = window.speechSynthesis.getVoices();
+      const skVoice = voices.find(v => v.lang.includes('sk'));
+      if (skVoice) u.voice = skVoice;
+
+      u.onend = safeCb;
+      u.onerror = () => {
+        fallbackSpeak(text, safeCb);
+      };
+
+      window.speechSynthesis.speak(u);
+
+      // Poistka ak by prehliadač neodpovedal
       setTimeout(() => {
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'sk-SK';
-        u.rate = 0.95;
-        
-        let hasEnded = false;
-        const safeCb = () => {
-          if (!hasEnded) {
-            hasEnded = true;
-            if (cb) cb();
-          }
-        };
+        if (!hasEnded && !window.speechSynthesis.speaking) {
+          fallbackSpeak(text, safeCb);
+        }
+      }, 1000);
 
-        u.onend = safeCb;
-        u.onerror = safeCb;
+    } else {
+      fallbackSpeak(text, safeCb);
+    }
+  }
 
-        window.speechSynthesis.speak(u);
-
-        // Poistka, ak by browser zlyhal pri onend udalošti
-        setTimeout(safeCb, 4500);
-      }, 50);
-    } else if (cb) {
-      cb();
+  // Náhradný hlasový syntetizátor pre prehliadače bez SK hlasu
+  function fallbackSpeak(text, cb) {
+    try {
+      const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=sk&client=tw-ob`;
+      currentAudioSpeech = new Audio(url);
+      currentAudioSpeech.onended = cb;
+      currentAudioSpeech.onerror = cb;
+      currentAudioSpeech.play().catch(cb);
+    } catch(e) {
+      if (cb) cb();
     }
   }
 
@@ -507,7 +547,6 @@
     });
   }
 
-  // Bezpečné získanie dostupných nadchádzajúcich zastávok
   function getAvailableStops() {
     if (currentRoute && Array.isArray(currentRoute)) {
       if (currentIndex < currentRoute.length - 1) {
@@ -525,7 +564,6 @@
     
     const availableStops = getAvailableStops();
 
-    // Ak aktuálne vybraná zastávka už nie je v ponuke, nastaví prvá dostupnú
     if (!availableStops.includes(selectedTargetStop)) {
       selectedTargetStop = availableStops.length > 0 ? availableStops[0] : "";
     }
@@ -552,7 +590,6 @@
     renderTickets();
   }
 
-  // Výpočet zónovej vzdialenosti pre odlišné ceny podľa cieľovej zastávky
   function calculateTicketPrice(ticketType) {
     if (ticketType.isFree) return 0.00;
 
@@ -758,8 +795,11 @@
 
       playGong(() => {
         let msg = curr + ".";
-        if (!isEnd) msg += " Nasledujúca zastávka: " + next;
-        else msg += " Konečná zastávka. Prosíme vystúpte.";
+        if (!isEnd) {
+          msg += " Nasledujúca zastávka: " + next;
+        } else {
+          msg += " Konečná zastávka. Prosíme vystúpte.";
+        }
 
         speak(msg, () => {
           if (isEnd) {
@@ -769,7 +809,6 @@
             document.getElementById('btn-start').disabled = false;
             document.getElementById('line-select').disabled = false;
             
-            // Obnoví plný zoznam zastávok po ukončení
             currentRoute = null;
             renderStopsSelector();
             renderTickets();
@@ -780,6 +819,13 @@
         });
       });
     }
+  }
+
+  // Načítanie hlasov do pamäte prehliadača
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
   }
 
   setInterval(() => {
