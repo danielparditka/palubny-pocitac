@@ -1,0 +1,1 @@
+# palubny-pocitac
