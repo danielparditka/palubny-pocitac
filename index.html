@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Palubný Počítač Autobusu - IBIS System</title>
+  <style>
+    :root {
+      --bg-color: #e0e5ec;
+      --panel-bg: #f0f3f8;
+      --text-color: #1a202c;
+      --accent-color: #2b6cb0;
+      --success-color: #2f855a;
+      --danger-color: #c53030;
+      --warning-color: #dd6b20;
+      --border-color: #cbd5e0;
+      --shadow: 0 8px 16px rgba(0,0,0,0.1);
+      --screen-bg: #1a2421;
+      --screen-text: #00ff66;
+    }
+
+    body.night-mode {
+      --bg-color: #121212;
+      --panel-bg: #1e1e1e;
+      --text-color: #e0e0e0;
+      --accent-color: #3182ce;
+      --border-color: #333333;
+      --shadow: 0 8px 16px rgba(0,0,0,0.5);
+      --screen-bg: #050b08;
+      --screen-text: #00cc52;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: background-color 0.3s, color 0.3s;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    header {
+      grid-column: 1 / -1;
+      background-color: var(--panel-bg);
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .status-bar {
+      display: flex;
+      gap: 20px;
+      font-weight: bold;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary { background-color: var(--accent-color); color: white; }
+    .btn-success { background-color: var(--success-color); color: white; }
+    .btn-danger { background-color: var(--danger-color); color: white; }
+    .btn-warning { background-color: var(--warning-color); color: white; }
+
+    /* Palubný displej */
+    .dashboard-display {
+      background-color: var(--screen-bg);
+      color: var(--screen-text);
+      padding: 20px;
+      border-radius: 12px;
+      font-family: 'Courier New', Courier, monospace;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+      margin-bottom: 20px;
+      border: 3px solid #333;
+    }
+
+    .display-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+
+    .display-main {
+      font-size: 1.8rem;
+      text-align: center;
+      margin: 15px 0;
+      font-weight: bold;
+      text-shadow: 0 0 5px var(--screen-text);
+    }
+
+    .panel {
+      background-color: var(--panel-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+
+    .panel-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      border-bottom: 2px solid var(--accent-color);
+      padding-bottom: 5px;
+    }
+
+    /* Mriežka lístkov */
+    .ticket-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .ticket-btn {
+      background-color: var(--panel-bg);
+      border: 2px solid var(--accent-color);
+      color: var(--text-color);
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 80px;
+    }
+
+    .ticket-btn:hover {
+      background-color: var(--accent-color);
+      color: white;
+    }
+
+    .ticket-btn .title { font-size: 0.85rem; font-weight: bold; }
+    .ticket-btn .price { font-size: 1.1rem; align-self: flex-end; }
+
+    /* Mapa a zastávky */
+    .map-container {
+      height: 300px;
+      background-color: #242f3e;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--border-color);
+    }
+
+    .compass-point {
+      position: absolute;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.9rem;
+      background: rgba(0,0,0,0.6);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .north { top: 10px; }
+    .south { bottom: 10px; }
+    .east { right: 10px; }
+    .west { left: 10px; }
+
+    .stop-node {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: #e53e3e;
+      border-radius: 50%;
+      border: 2px solid white;
+      transform: translate(-50%, -50%);
+    }
+
+    .stop-node.active {
+      background: #38a169;
+      scale: 1.4;
+      box-shadow: 0 0 10px #38a169;
+    }
+
+    .stop-label {
+      position: absolute;
+      color: white;
+      font-size: 0.75rem;
+      background: rgba(0,0,0,0.7);
+      padding: 2px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+      transform: translate(-50%, -180%);
+    }
+
+    .stats-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .stat-box {
+      background-color: rgba(0,0,0,0.05);
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: var(--accent-color);
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background-color: var(--panel-bg);
+      color: var(--text-color);
+      margin-bottom: 15px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🚌 Palubný Počítač IBIS</h1>
+    <div class="status-bar">
+      <span id="clock">00:00:00</span>
+      <button class="btn btn-warning" onclick="toggleNightMode()">🌙 Nočný Režim</button>
+    </div>
+  </header>
+
+  <!-- Ľavý stĺpec: Riadenie linky a Lístky -->
+  <div class="main-content">
+    
+    <!-- Displej palubného počítača -->
+    <div class="dashboard-display">
+      <div class="display-row">
+        <span id="disp-line">LINKA: --</span>
+        <span id="disp-delay">MEŠKANIE: 0s</span>
+      </div>
+      <div class="display-main" id="disp-current-stop">VYBERTE LINKU</div>
+      <div class="display-row">
+        <span id="disp-next-stop">NASLEDUJE: --</span>
+        <span id="disp-time-diff">PLÁN: --</span>
+      </div>
+    </div>
+
+    <!-- Panel riadenia -->
+    <div class="panel">
+      <div class="panel-title">Riadenie Jazdy</div>
+      <div style="display: flex; gap: 15px; align-items: center;">
+        <select id="line-select">
+          <option value="">-- Vyberte linku --</option>
+          <option value="101">Linka 101: Dvorný okruh (Garáž -> Okruh -> Garáž)</option>
+          <option value="N99">Linka N99: Nočná záloha (Garáž -> Sektor Noc -> Garáž)</option>
+        </select>
+        <button class="btn btn-primary" onclick="startRoute()" id="btn-start">Spustiť Linku</button>
+      </div>
+
+      <div style="margin-top: 15px; display: flex; gap: 10px;">
+        <button class="btn btn-success" style="flex: 2; font-size: 1.2rem; padding: 15px;" onclick="announceArrival()" id="btn-arrival" disabled>
+          🔔 Príchod na zastávku / Hásiť
+        </button>
+      </div>
+    </div>
+
+    <!-- Panel lístkov -->
+    <div class="panel">
+      <div class="panel-title">Predaj Cestovných Lístkov</div>
+      <div class="ticket-grid" id="ticket-buttons">
+        <!-- Generované pomocou JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Pravý stĺpec: Mapa a Pokladňa -->
+  <div class="sidebar">
+    
+    <!-- Mapa -->
+    <div class="panel">
+      <div class="panel-title">Mapa Siete Zastávok</div>
+      <div class="map-container" id="map">
+        <div class="compass-point north">N (Sever)</div>
+        <div class="compass-point south">S (Juh)</div>
+        <div class="compass-point east">E (Východ)</div>
+        <div class="compass-point west">W (Západ)</div>
+        <!-- Zastávky generované dynamicky -->
+      </div>
+    </div>
+
+    <!-- Pokladňa & Štatistiky -->
+    <div class="panel">
+      <div class="panel-title">Tržba a Štatistika</div>
+      <div class="stats-container">
+        <div class="stat-box">
+          <div>Predané Lístky</div>
+          <div class="stat-value" id="stat-count">0 ks</div>
+        </div>
+        <div class="stat-box">
+          <div>Celková Tržba</div>
+          <div class="stat-value" id="stat-revenue">0.00 €</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Dynamic Data & Route Definitions
+  const stopsData = {
+    "Garáž": { x: 50, y: 50, side: "Center" },
+    "Pri Altánku": { x: 50, y: 20, side: "Sever" },
+    "Brána": { x: 80, y: 50, side: "Východ" },
+    "Dvorská": { x: 50, y: 80, side: "Juh" },
+    "Západná": { x: 20, y: 50, side: "Západ" },
+    "Nočná 1": { x: 30, y: 30, side: "Severo-Západ" },
+    "Nočná 2": { x: 70, y: 70, side: "Juhovýchod" }
+  };
+
+  const routes = {
+    "101": ["Garáž", "Pri Altánku", "Brána", "Dvorská", "Západná", "Garáž"],
+    "N99": ["Garáž", "Nočná 1", "Pri Altánku", "Nočná 2", "Garáž"]
+  };
+
+  const ticketTypes = [
+    { name: "Obyčajný", price: 1.00 },
+    { name: "Žiak / Študent", price: 0.50 },
+    { name: "Osobitné nad 70 r.", price: 0.20 },
+    { name: "Osobitné - Senior", price: 0.40 },
+    { name: "Dieťa 0-6 rokov", price: 0.00 },
+    { name: "Dieťa 6-18 rokov", price: 0.50 },
+    { name: "Zľavnené - ŤZP", price: 0.30 },
+    { name: "Osobné - Zamestnanec", price: 0.00 },
+    { name: "Osobné - Dieťa zamestnanca", price: 0.00 },
+    { name: "Osobné - Tehotná žena", price: 0.00 }
+  ];
+
+  // Application State
+  let currentRoute = null;
+  let currentStopIndex = 0;
+  let totalRevenue = 0;
+  let totalTickets = 0;
+  let legStartTime = null;
+  let plannedLegTime = 0;
+  let delaySeconds = 0;
+
+  // Audio Context pre zvuky
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function playBeep(freq = 800, duration = 0.15) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = freq;
+    osc.start();
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    osc.stop(audioCtx.currentTime + duration);
+  }
+
+  function playGong(callback) {
+    playBeep(600, 0.2);
+    setTimeout(() => {
+      playBeep(900, 0.4);
+      if (callback) setTimeout(callback, 500);
+    }, 200);
+  }
+
+  // Voice synthesis (Text-To-Speech)
+  function speak(text, callback) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Zruš predchádzajúce hlásenia
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'sk-SK';
+      utterance.rate = 0.9;
+      if (callback) {
+        utterance.onend = callback;
+      }
+      window.speechSynthesis.speak(utterance);
+    } else if (callback) {
+      callback();
+    }
+  }
+
+  // Clock
+  setInterval(() => {
+    const now = new Date();
+    document.getElementById('clock').innerText = now.toLocaleTimeString('sk-SK');
+  }, 1000);
+
+  // Init UI
+  function initUI() {
+    renderTickets();
+    renderMap();
+  }
+
+  function renderTickets() {
+    const container = document.getElementById('ticket-buttons');
+    container.innerHTML = '';
+    ticketTypes.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'ticket-btn';
+      btn.innerHTML = `<span class="title">${t.name}</span><span class="price">${t.price.toFixed(2)} €</span>`;
+      btn.onclick = () => issueTicket(t);
+      container.appendChild(btn);
+    });
+  }
+
+  function renderMap() {
+    const map = document.getElementById('map');
+    // Clear old stops
+    const oldStops = map.querySelectorAll('.stop-node, .stop-label');
+    oldStops.forEach(el => el.remove());
+
+    Object.keys(stopsData).forEach(stopName => {
+      const info = stopsData[stopName];
+      
+      const node = document.createElement('div');
+      node.className = 'stop-node';
+      node.id = `node-${stopName.replace(/\s+/g, '')}`;
+      node.style.left = `${info.x}%`;
+      node.style.top = `${info.y}%`;
+
+      const label = document.createElement('div');
+      label.className = 'stop-label';
+      label.style.left = `${info.x}%`;
+      label.style.top = `${info.y}%`;
+      label.innerText = stopName;
+
+      map.appendChild(node);
+      map.appendChild(label);
+    });
+  }
+
+  function updateMapHighlight(currentStop) {
+    document.querySelectorAll('.stop-node').forEach(el => el.classList.remove('active'));
+    if (currentStop) {
+      const activeNode = document.getElementById(`node-${currentStop.replace(/\s+/g, '')}`);
+      if (activeNode) activeNode.classList.add('active');
+    }
+  }
+
+  function issueTicket(ticket) {
+    playBeep(1200, 0.1); // Zvuk vytlačenia lístka
+    totalRevenue += ticket.price;
+    totalTickets++;
+    document.getElementById('stat-revenue').innerText = totalRevenue.toFixed(2) + ' €';
+    document.getElementById('stat-count').innerText = totalTickets + ' ks';
+  }
+
+  function startRoute() {
+    const lineVal = document.getElementById('line-select').value;
+    if (!lineVal) {
+      alert("Vyberte prosím linku zo zoznamu!");
+      return;
+    }
+
+    currentRoute = routes[lineVal];
+    currentStopIndex = 0;
+    delaySeconds = 0;
+
+    document.getElementById('disp-line').innerText = `LINKA: ${lineVal}`;
+    document.getElementById('btn-start').disabled = true;
+    document.getElementById('line-select').disabled = true;
+    document.getElementById('btn-arrival').disabled = false;
+
+    processCurrentStop();
+  }
+
+  function processCurrentStop() {
+    const currentStop = currentRoute[currentStopIndex];
+    const nextStop = currentRoute[currentStopIndex + 1] || "Konečná (Garáž)";
+
+    document.getElementById('disp-current-stop').innerText = currentStop;
+    document.getElementById('disp-next-stop').innerText = `NASLEDUJE: ${nextStop}`;
+    updateMapHighlight(currentStop);
+
+    // Vypočítaj náhodný plánovaný čas pre nový úsek (15-35s)
+    plannedLegTime = Math.floor(Math.random() * (35 - 15 + 1)) + 15;
+    document.getElementById('disp-time-diff').innerText = `PLÁN ÚSEKU: ${plannedLegTime}s`;
+
+    legStartTime = Date.now();
+  }
+
+  function announceArrival() {
+    if (!currentRoute) return;
+
+    // Vypočítať čas jazdy
+    const elapsedSeconds = Math.round((Date.now() - legStartTime) / 1000);
+    const diff = elapsedSeconds - plannedLegTime;
+    delaySeconds += diff;
+
+    // Aktualizovať zobrazenie meškania
+    const delayEl = document.getElementById('disp-delay');
+    if (delaySeconds > 0) {
+      delayEl.innerText = `MEŠKANIE: +${delaySeconds}s`;
+      delayEl.style.color = '#ff4d4d';
+    } else if (delaySeconds < 0) {
+      delayEl.innerText = `NADBEH: ${delaySeconds}s`;
+      delayEl.style.color = '#ffcc00';
+    } else {
+      delayEl.innerText = `MEŠKANIE: 0s`;
+      delayEl.style.color = 'var(--screen-text)';
+    }
+
+    const currentStop = currentRoute[currentStopIndex];
+    currentStopIndex++;
+
+    const isEnd = currentStopIndex >= currentRoute.length - 1;
+    const nextStop = currentRoute[currentStopIndex];
+
+    // Hlásenie cez Gong a Voice
+    playGong(() => {
+      let speechText = currentStop + ".";
+      if (!isEnd) {
+        speechText += " Nasledujúca zastávka: " + nextStop + ".";
+      } else {
+        speechText += " Konečná zastávka. Prosíme vystúpte.";
+      }
+      
+      speak(speechText, () => {
+        if (isEnd) {
+          finishRoute();
+        } else {
+          processCurrentStop();
+        }
+      });
+    });
+  }
+
+  function finishRoute() {
+    const finalStop = currentRoute[currentRoute.length - 1];
+    document.getElementById('disp-current-stop').innerText = "KONIEC LINKY";
+    document.getElementById('disp-next-stop').innerText = `STANOVIŠTE: ${finalStop}`;
+    updateMapHighlight(finalStop);
+
+    alert("Linka bola úspešne dokončená! Môžete vybrať ďalšiu linku.");
+
+    // Reset controls
+    document.getElementById('btn-start').disabled = false;
+    document.getElementById('line-select').disabled = false;
+    document.getElementById('btn-arrival').disabled = true;
+    currentRoute = null;
+  }
+
+  function toggleNightMode() {
+    document.body.classList.toggle('night-mode');
+  }
+
+  // Start app
+  window.onload = initUI;
+</script>
+</body>
+</html>
