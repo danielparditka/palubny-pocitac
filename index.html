@@ -17,6 +17,29 @@
       --danger: #dc2626;
       --warning: #d97706;
       --route-line: #2563eb;
+      --map-bg: #ffffff;
+      --map-txt: #1e293b;
+      --disp-bg: #0f172a;
+      --disp-txt: #ffffff;
+    }
+
+    /* Tmavý režim (Night Mode) */
+    body.night-mode {
+      --bg: #0b0f19;
+      --panel: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --route-line: #60a5fa;
+      --map-bg: #0f172a;
+      --map-txt: #f1f5f9;
+      --disp-bg: #020617;
+      --disp-txt: #f8fafc;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -27,6 +50,7 @@
       overflow: hidden; /* Zabráni skrolovaniu */
       background: var(--bg);
       color: var(--text);
+      transition: background-color 0.3s, color 0.3s;
     }
 
     .app-container {
@@ -50,7 +74,31 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     header h2 { font-size: 1.1rem; color: var(--primary); font-weight: 700; }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     #clock { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+
+    .theme-toggle-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .theme-toggle-btn:hover {
+      background: var(--border);
+    }
 
     /* Palubný Displej */
     .dashboard-panel {
@@ -62,8 +110,8 @@
     }
 
     .display-screen {
-      background: #0f172a;
-      color: #ffffff;
+      background: var(--disp-bg);
+      color: var(--disp-txt);
       border-radius: 6px;
       padding: 8px 10px;
       margin-bottom: 6px;
@@ -73,7 +121,7 @@
 
     /* Ovládanie */
     .controls-row { display: flex; gap: 6px; margin-bottom: 6px; }
-    select { flex: 1; padding: 6px; border-radius: 6px; background: #ffffff; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; }
+    select { flex: 1; padding: 6px; border-radius: 6px; background: var(--panel); color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; }
     
     .btn {
       padding: 6px 10px;
@@ -93,7 +141,7 @@
     .map-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
     .map-box {
       flex: 1;
-      background: #ffffff;
+      background: var(--map-bg);
       border-radius: 8px;
       border: 1px solid var(--border);
       position: relative;
@@ -123,8 +171,8 @@
       position: absolute;
       font-size: 0.6rem;
       font-weight: 600;
-      color: #1e293b;
-      background: rgba(255, 255, 255, 0.85);
+      color: var(--map-txt);
+      background: var(--panel);
       padding: 1px 3px;
       border-radius: 3px;
       border: 1px solid var(--border);
@@ -147,7 +195,7 @@
     .ticket-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; overflow-y: auto; max-height: 110px; padding-right: 2px; }
     
     .ticket-btn {
-      background: #f8fafc;
+      background: var(--panel);
       border: 2px solid var(--border);
       color: var(--text);
       padding: 5px 8px;
@@ -163,7 +211,7 @@
     }
     .ticket-btn.selected {
       border-color: var(--primary);
-      background-color: #eff6ff;
+      background-color: rgba(37, 99, 235, 0.15);
     }
     .ticket-price { color: var(--success); font-weight: 700; }
     .ticket-badge {
@@ -186,13 +234,13 @@
       border: 1px solid var(--border);
       border-radius: 6px;
       cursor: pointer;
-      background: #ffffff;
+      background: var(--panel);
       color: var(--text);
       transition: background 0.15s;
     }
-    .btn-pay:hover { background: #e2e8f0; }
-    .btn-pay-cash { border-color: #16a34a; color: #15803d; }
-    .btn-pay-card { border-color: #2563eb; color: #1d4ed8; }
+    .btn-pay:hover { background: var(--border); }
+    .btn-pay-cash { border-color: #16a34a; color: var(--success); }
+    .btn-pay-card { border-color: #2563eb; color: var(--primary); }
 
     /* Štatistika */
     .stats-row { display: flex; gap: 6px; }
@@ -205,7 +253,10 @@
 <div class="app-container">
   <header>
     <h2>🚌 EmTest</h2>
-    <span id="clock">00:00:00</span>
+    <div class="header-right">
+      <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleNightMode()" title="Prepnúť nočný režim">🌙</button>
+      <span id="clock">00:00:00</span>
+    </div>
   </header>
 
   <!-- Palubný Displej -->
@@ -323,6 +374,21 @@
 
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+  function toggleNightMode() {
+    document.body.classList.toggle('night-mode');
+    const isNight = document.body.classList.contains('night-mode');
+    document.getElementById('theme-toggle').innerText = isNight ? '☀️' : '🌙';
+    localStorage.setItem('emtest_night_mode', isNight ? 'true' : 'false');
+  }
+
+  function initTheme() {
+    const savedNight = localStorage.getItem('emtest_night_mode');
+    if (savedNight === 'true') {
+      document.body.classList.add('night-mode');
+      document.getElementById('theme-toggle').innerText = '☀️';
+    }
+  }
+
   function playSound(freq, duration) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -336,7 +402,7 @@
   }
 
   function playTicketPrintSound() {
-    // Zvuk tiskárne lístka EmTest
+    // Zvuk tlačiarne lístka EmTest
     for (let i = 0; i < 3; i++) {
       setTimeout(() => playSound(1200 - i * 200, 0.05), i * 60);
     }
@@ -583,6 +649,7 @@
   window.onresize = drawRouteLine;
 
   window.onload = () => { 
+    initTheme();
     renderMap(); 
     renderTickets();
     setTimeout(drawRouteLine, 300); 
