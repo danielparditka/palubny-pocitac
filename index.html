@@ -478,11 +478,28 @@
     });
   }
 
+  // Dynamická filtrácia nadchádzajúcich zastávok podľa stavu linky
+  function getAvailableStops() {
+    if (currentRoute && currentIndex < currentRoute.length - 1) {
+      // Vráti len nadchádzajúce zastávky aktívnej linky (od nasledujúcej až po konečnú)
+      return currentRoute.slice(currentIndex + 1);
+    }
+    // Mimo aktívnej linky alebo na konci zobrazí všetky zastávky
+    return orderedStopsList;
+  }
+
   function renderStopsSelector() {
     const container = document.getElementById('ticket-stops-selector');
     container.innerHTML = '';
     
-    orderedStopsList.forEach(stopName => {
+    const availableStops = getAvailableStops();
+
+    // Ak aktuálne vybraná zastávka už nie je v ponuke, prenos na prvú dostupnú
+    if (!availableStops.includes(selectedTargetStop) && availableStops.length > 0) {
+      selectedTargetStop = availableStops[0];
+    }
+    
+    availableStops.forEach(stopName => {
       const btn = document.createElement('button');
       btn.className = 'stop-select-btn';
       if (stopName === selectedTargetStop) btn.classList.add('selected');
@@ -673,6 +690,7 @@
     document.getElementById('disp-stop').innerText = curr;
     document.getElementById('disp-next').innerText = 'NASLEDUJE: ' + (next || 'Konečná');
 
+    renderStopsSelector();
     renderTickets();
 
     if (next) {
@@ -710,6 +728,10 @@
             document.getElementById('btn-arrive').disabled = true;
             document.getElementById('btn-start').disabled = false;
             document.getElementById('line-select').disabled = false;
+            
+            // Obnoví plný zoznam zastávok po ukončení
+            renderStopsSelector();
+            renderTickets();
             alert("Koniec linky! Môžete si vybrať ďalšiu linku.");
           } else {
             nextLeg();
