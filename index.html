@@ -117,7 +117,16 @@
       margin-bottom: 6px;
     }
     .disp-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; }
-    .display-main { font-size: 1.2rem; font-weight: 700; color: #38bdf8; text-align: center; margin: 2px 0; }
+    
+    /* Úprava podľa požiadavky: biely text zarovnaný vľavo */
+    .display-main {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-align: left;
+      margin: 4px 0;
+      padding-left: 2px;
+    }
 
     /* Ovládanie */
     .controls-row { display: flex; gap: 6px; margin-bottom: 6px; }
@@ -190,7 +199,7 @@
     }
 
     /* Lístky */
-    .tickets-panel { height: 230px; display: flex; flex-direction: column; justify-content: space-between; }
+    .tickets-panel { height: 245px; display: flex; flex-direction: column; justify-content: space-between; }
     .section-title { font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); text-transform: uppercase; }
     
     .stops-selector { display: flex; gap: 4px; margin-bottom: 6px; overflow-x: auto; padding-bottom: 2px; }
@@ -215,7 +224,7 @@
       box-shadow: 0 0 0 1px var(--primary);
     }
 
-    .ticket-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; overflow-y: auto; max-height: 95px; padding-right: 2px; }
+    .ticket-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; overflow-y: auto; max-height: 85px; padding-right: 2px; }
     
     .ticket-btn {
       background: var(--panel);
@@ -399,6 +408,11 @@
       <div class="section-title">Cieľová zastávka lístka</div>
       <div class="stops-selector" id="ticket-stops-selector"></div>
       
+      <!-- Informačný pásik pre ručné zadanie požiadavky -->
+      <div id="demand-hint-box" style="display:none; font-size:0.72rem; background:rgba(37,99,235,0.12); border:1px solid var(--primary); padding:4px 8px; border-radius:6px; margin-bottom:6px; font-weight:600; color:var(--text);">
+        📋 Požiadavka: <span id="demand-hint-text" style="color:var(--primary);"></span>
+      </div>
+
       <div class="section-title">Predaj lístkov</div>
       <div class="ticket-grid" id="ticket-grid"></div>
     </div>
@@ -435,7 +449,7 @@
 
     <div class="passenger-list" id="modal-passenger-list"></div>
 
-    <div style="display:flex; justify-size:space-between; font-size:0.8rem; font-weight:700; margin-bottom:4px;">
+    <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700; margin-bottom:4px;">
       <span>Suma za lístky:</span>
       <span id="modal-total-price" style="color:var(--success);">0.00 €</span>
     </div>
@@ -464,7 +478,6 @@
     "Železničná stanica"
   ];
 
-  // Rozšírené linky
   const routes = {
     "101": ["Garáž", "Pri altánku", "Brána", "Pri schodoch", "Železničná stanica", "Garáž"],
     "102": ["Garáž", "Pri schodoch", "Železničná stanica", "Brána", "Pri altánku", "Pri schodoch", "Garáž"],
@@ -495,9 +508,8 @@
   let revenue = 0;
   let count = 0;
   
-  // Plynulé meškanie podľa cestovného poriadku
   let lineStartTimestamp = 0;
-  let accumulatedScheduledTime = 0; // Nahromadený plánovaný čas v sekundách
+  let accumulatedScheduledTime = 0;
   let targetTimestamp = 0;
 
   let busAnimInterval = null;
@@ -592,30 +604,11 @@
       if (skVoice) u.voice = skVoice;
 
       u.onend = safeCb;
-      u.onerror = () => fallbackSpeak(text, safeCb);
+      u.onerror = safeCb;
 
       window.speechSynthesis.speak(u);
-
-      setTimeout(() => {
-        if (!hasEnded && !window.speechSynthesis.speaking) {
-          fallbackSpeak(text, safeCb);
-        }
-      }, 1200);
-
     } else {
-      fallbackSpeak(text, safeCb);
-    }
-  }
-
-  function fallbackSpeak(text, cb) {
-    try {
-      const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=sk&client=tw-ob`;
-      currentAudioSpeech = new Audio(url);
-      currentAudioSpeech.onended = cb;
-      currentAudioSpeech.onerror = cb;
-      currentAudioSpeech.play().catch(cb);
-    } catch(e) {
-      if (cb) cb();
+      safeCb();
     }
   }
 
@@ -683,19 +676,28 @@
     renderTickets();
   }
 
+  /* Výpočet ceny lístka podľa vzdialenosti v trati */
   function calculateTicketPrice(ticketType, targetStopName = null) {
     if (ticketType.isFree) return 0.00;
 
     let destination = targetStopName || selectedTargetStop;
-    let currentStopName = (currentRoute && currentRoute[currentIndex]) ? currentRoute[currentIndex] : orderedStopsList[0];
-    let fromIdx = orderedStopsList.indexOf(currentStopName);
-    let toIdx = orderedStopsList.indexOf(destination);
+    let distance = 1;
 
-    if (fromIdx === -1) fromIdx = 0;
-    if (toIdx === -1) toIdx = 1;
-
-    let distance = Math.abs(toIdx - fromIdx);
-    if (distance === 0) distance = 1;
+    if (currentRoute) {
+      let fromIdx = currentIndex;
+      let toIdx = currentRoute.indexOf(destination, currentIndex);
+      if (toIdx > fromIdx) {
+        distance = toIdx - fromIdx;
+      }
+    } else {
+      let currentStopName = orderedStopsList[0];
+      let fromIdx = orderedStopsList.indexOf(currentStopName);
+      let toIdx = orderedStopsList.indexOf(destination);
+      if (fromIdx !== -1 && toIdx !== -1) {
+        distance = Math.abs(toIdx - fromIdx);
+      }
+    }
+    if (distance <= 0) distance = 1;
 
     let finalPrice = ticketType.baseRate * (distance + 1);
     return Math.round(finalPrice * 20) / 20;
@@ -759,6 +761,9 @@
 
     document.getElementById('stat-revenue').innerText = revenue.toFixed(2) + ' €';
     document.getElementById('stat-count').innerText = count + ' ks';
+
+    // Schovať nápovedu po zaplatení
+    document.getElementById('demand-hint-box').style.display = 'none';
 
     selectedTickets = {};
     renderTickets();
@@ -867,7 +872,7 @@
     renderTickets();
 
     if (next) {
-      const legDuration = Math.floor(Math.random() * 11) + 20; // 20-30s na úsek
+      const legDuration = Math.floor(Math.random() * 11) + 20;
       accumulatedScheduledTime += legDuration;
       targetTimestamp = lineStartTimestamp + (accumulatedScheduledTime * 1000);
 
@@ -879,6 +884,7 @@
     }
   }
 
+  /* Opravený príchod: Displej sa aktualizuje ihneď pri vyhlásení príchodu */
   function announceArrival() {
     initAudio();
     if (!currentRoute) return;
@@ -890,6 +896,10 @@
       const isEnd = currentIndex === currentRoute.length - 1;
 
       moveBusToStop(curr);
+
+      // IHNEĎ aktualizujeme displej, aby bol v zhode s hlásením
+      document.getElementById('disp-stop').innerText = curr;
+      document.getElementById('disp-next').innerText = 'NASLEDUJE: ' + (next || 'Konečná');
 
       playGong(() => {
         let msg = curr + ".";
@@ -913,7 +923,6 @@
             renderTickets();
             alert("Koniec linky! Môžete si vybrať ďalšiu linku.");
           } else {
-            // Po príchode na zastávku vygenerujeme cestujúcich
             generatePassengerDemand(curr);
           }
         });
@@ -921,18 +930,17 @@
     }
   }
 
-  // --- FUNKCIONALITA POPUP OKNA CESTUJÚCICH ---
   function generatePassengerDemand(stopName) {
     const availableDestinations = getAvailableStops();
     if (availableDestinations.length === 0) return nextLeg();
 
     pendingPassengerDemand = [];
-    const numPassengers = Math.floor(Math.random() * 3) + 1; // 1 až 3 skupiny cestujúcich
+    const numPassengers = Math.floor(Math.random() * 3) + 1;
 
     for (let i = 0; i < numPassengers; i++) {
       const randomTicketType = baseTicketTypes[Math.floor(Math.random() * baseTicketTypes.length)];
       const randomDest = availableDestinations[Math.floor(Math.random() * availableDestinations.length)];
-      const count = Math.floor(Math.random() * 2) + 1; // 1 alebo 2 ks
+      const count = Math.floor(Math.random() * 2) + 1;
       const unitPrice = calculateTicketPrice(randomTicketType, randomDest);
 
       pendingPassengerDemand.push({
@@ -991,20 +999,31 @@
     document.getElementById('stat-revenue').innerText = revenue.toFixed(2) + ' €';
     document.getElementById('stat-count').innerText = count + ' ks';
 
+    document.getElementById('demand-hint-box').style.display = 'none';
+
     closeModal();
     nextLeg();
   }
 
+  /* Ručné zadanie: Neoznačí lístky, iba zobrazí požiadavku pre vodiča */
   function applyPassengersToGrid() {
     selectedTickets = {};
+
+    let summaryText = pendingPassengerDemand.map(item => `${item.count}x ${item.ticketType.name} (${item.destination})`).join(', ');
+    
+    const hintBox = document.getElementById('demand-hint-box');
+    const hintText = document.getElementById('demand-hint-text');
+    if (summaryText) {
+      hintText.innerText = summaryText;
+      hintBox.style.display = 'block';
+    } else {
+      hintBox.style.display = 'none';
+    }
+
     if (pendingPassengerDemand.length > 0) {
       selectedTargetStop = pendingPassengerDemand[0].destination;
       renderStopsSelector();
     }
-
-    pendingPassengerDemand.forEach(item => {
-      selectedTickets[item.ticketType.id] = (selectedTickets[item.ticketType.id] || 0) + item.count;
-    });
 
     renderTickets();
     closeModal();
