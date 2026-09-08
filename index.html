@@ -47,7 +47,7 @@
     html, body {
       width: 100%;
       height: 100%;
-      overflow: hidden; /* Zabráni skrolovaniu */
+      overflow: hidden;
       background: var(--bg);
       color: var(--text);
       transition: background-color 0.3s, color 0.3s;
@@ -57,7 +57,7 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
-      max-width: 600px; /* Ideálna šírka pre mobil */
+      max-width: 600px;
       margin: 0 auto;
       padding: 6px;
       gap: 6px;
@@ -117,7 +117,7 @@
       margin-bottom: 6px;
     }
     .disp-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; }
-    .disp-main { font-size: 1.2rem; font-weight: 700; color: #38bdf8; text-align: center; margin: 2px 0; }
+    .display-main { font-size: 1.2rem; font-weight: 700; color: #38bdf8; text-align: center; margin: 2px 0; }
 
     /* Ovládanie */
     .controls-row { display: flex; gap: 6px; margin-bottom: 6px; }
@@ -193,7 +193,6 @@
     .tickets-panel { height: 230px; display: flex; flex-direction: column; justify-content: space-between; }
     .section-title { font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); text-transform: uppercase; }
     
-    /* Zastávky pre lístky */
     .stops-selector { display: flex; gap: 4px; margin-bottom: 6px; overflow-x: auto; padding-bottom: 2px; }
     .stop-select-btn {
       flex: 1;
@@ -248,7 +247,6 @@
       font-weight: 700;
     }
 
-    /* Tlačidlá Platby */
     .payment-row { display: flex; gap: 4px; margin-top: 4px; }
     .btn-pay {
       flex: 1;
@@ -270,6 +268,72 @@
     .stats-row { display: flex; gap: 6px; }
     .stat-card { flex: 1; background: var(--panel); padding: 4px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
     .stat-val { font-size: 0.9rem; font-weight: 700; color: var(--primary); }
+
+    /* Modal pre cestujúcich */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(3px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      background: var(--panel);
+      border: 2px solid var(--primary);
+      border-radius: 12px;
+      padding: 16px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      color: var(--text);
+    }
+    .modal-header {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .passenger-list {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin: 10px 0;
+      max-height: 160px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+    }
+    .passenger-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .passenger-item:last-child { border-bottom: none; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .btn-modal {
+      flex: 1;
+      padding: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -300,8 +364,11 @@
       <select id="line-select">
         <option value="">-- Vyberte linku --</option>
         <option value="101">Linka 101 - Dvorný okruh</option>
+        <option value="102">Linka 102 - Dlhá dvorná okružná</option>
         <option value="201">Linka 201 - Expres</option>
+        <option value="305">Linka 305 - Krížom-krážom Expres</option>
         <option value="N91">Linka N91 - Nočná</option>
+        <option value="X10">Linka X10 - Veľký dvorný okruh</option>
       </select>
       <button class="btn" id="btn-start" onclick="startLine()">Spustiť</button>
     </div>
@@ -356,6 +423,30 @@
   </div>
 </div>
 
+<!-- Modal okno pre cestujúcich na zastávke -->
+<div class="modal-overlay" id="passenger-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      👥 Cestujúci na zastávke: <span id="modal-stop-name" style="color:var(--text);">--</span>
+    </div>
+    <div style="font-size:0.75rem; color:var(--text-muted);">
+      Na zastávke nastupujú cestujúci a požadujú nasledujúce lístky:
+    </div>
+
+    <div class="passenger-list" id="modal-passenger-list"></div>
+
+    <div style="display:flex; justify-size:space-between; font-size:0.8rem; font-weight:700; margin-bottom:4px;">
+      <span>Suma za lístky:</span>
+      <span id="modal-total-price" style="color:var(--success);">0.00 €</span>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-modal btn-success" onclick="applyAndPayPassengers()">⚡ Vytlačiť všetko</button>
+      <button class="btn-modal btn" style="background:var(--panel); border:1px solid var(--border); color:var(--text);" onclick="applyPassengersToGrid()">✏️ Zadať do pokladne</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const stops = {
     "Garáž": { x: 50, y: 82 },
@@ -373,10 +464,14 @@
     "Železničná stanica"
   ];
 
+  // Rozšírené linky
   const routes = {
     "101": ["Garáž", "Pri altánku", "Brána", "Pri schodoch", "Železničná stanica", "Garáž"],
+    "102": ["Garáž", "Pri schodoch", "Železničná stanica", "Brána", "Pri altánku", "Pri schodoch", "Garáž"],
     "201": ["Garáž", "Železničná stanica", "Brána", "Garáž"],
-    "N91": ["Garáž", "Pri altánku", "Brána", "Pri schodoch", "Garáž"]
+    "305": ["Železničná stanica", "Pri schodoch", "Brána", "Pri altánku", "Brána", "Železničná stanica", "Garáž"],
+    "N91": ["Garáž", "Pri altánku", "Brána", "Pri schodoch", "Garáž"],
+    "X10": ["Garáž", "Pri altánku", "Pri schodoch", "Železničná stanica", "Brána", "Pri altánku", "Garáž"]
   };
 
   const baseTicketTypes = [
@@ -399,12 +494,18 @@
   let currentIndex = 0;
   let revenue = 0;
   let count = 0;
-  let targetTime = 0;
+  
+  // Plynulé meškanie podľa cestovného poriadku
+  let lineStartTimestamp = 0;
+  let accumulatedScheduledTime = 0; // Nahromadený plánovaný čas v sekundách
+  let targetTimestamp = 0;
+
   let busAnimInterval = null;
   let timerInterval = null;
 
   let audioCtx = null;
   let currentAudioSpeech = null;
+  let pendingPassengerDemand = [];
 
   function initAudio() {
     if (!audioCtx) {
@@ -413,7 +514,6 @@
     if (audioCtx.state === 'suspended') {
       audioCtx.resume();
     }
-    // Prebudenie Web Speech API pri prvej interakcii
     if ('speechSynthesis' in window) {
       window.speechSynthesis.resume();
     }
@@ -464,7 +564,6 @@
     }, 150);
   }
 
-  // Odolná funkcia pre reč s fallbackom
   function speak(text, cb) {
     initAudio();
 
@@ -481,39 +580,33 @@
       }
     };
 
-    // Skúsime vstavanú Web Speech API
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // Vyčistiť frontu
+      window.speechSynthesis.cancel();
 
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'sk-SK';
       u.rate = 0.95;
 
-      // Vyhľadanie slovenského hlasu ak existuje
       const voices = window.speechSynthesis.getVoices();
       const skVoice = voices.find(v => v.lang.includes('sk'));
       if (skVoice) u.voice = skVoice;
 
       u.onend = safeCb;
-      u.onerror = () => {
-        fallbackSpeak(text, safeCb);
-      };
+      u.onerror = () => fallbackSpeak(text, safeCb);
 
       window.speechSynthesis.speak(u);
 
-      // Poistka ak by prehliadač neodpovedal
       setTimeout(() => {
         if (!hasEnded && !window.speechSynthesis.speaking) {
           fallbackSpeak(text, safeCb);
         }
-      }, 1000);
+      }, 1200);
 
     } else {
       fallbackSpeak(text, safeCb);
     }
   }
 
-  // Náhradný hlasový syntetizátor pre prehliadače bez SK hlasu
   function fallbackSpeak(text, cb) {
     try {
       const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=sk&client=tw-ob`;
@@ -590,12 +683,13 @@
     renderTickets();
   }
 
-  function calculateTicketPrice(ticketType) {
+  function calculateTicketPrice(ticketType, targetStopName = null) {
     if (ticketType.isFree) return 0.00;
 
+    let destination = targetStopName || selectedTargetStop;
     let currentStopName = (currentRoute && currentRoute[currentIndex]) ? currentRoute[currentIndex] : orderedStopsList[0];
     let fromIdx = orderedStopsList.indexOf(currentStopName);
-    let toIdx = orderedStopsList.indexOf(selectedTargetStop);
+    let toIdx = orderedStopsList.indexOf(destination);
 
     if (fromIdx === -1) fromIdx = 0;
     if (toIdx === -1) toIdx = 1;
@@ -654,7 +748,7 @@
     });
 
     if (totalBatchCount === 0) {
-      alert("Najprv vyberte lístok kliknutím na tlačidlo lístka!");
+      alert("Najprv vyberte lístok!");
       return;
     }
 
@@ -677,6 +771,9 @@
 
     currentRoute = routes[lineId];
     currentIndex = 0;
+
+    lineStartTimestamp = Date.now();
+    accumulatedScheduledTime = 0;
 
     document.getElementById('disp-line').innerText = 'LINKA: ' + lineId;
     document.getElementById('btn-start').disabled = true;
@@ -723,8 +820,7 @@
     const from = stops[fromStop];
     const to = stops[toStop];
     if (!from || !to) return;
-    const bus = document.getElementById('bus-marker');
-    
+
     let startTime = Date.now();
     busAnimInterval = setInterval(() => {
       let progress = (Date.now() - startTime) / (durationSec * 1000);
@@ -734,24 +830,25 @@
       }
       let currX = from.x + (to.x - from.x) * progress;
       let currY = from.y + (to.y - from.y) * progress;
+      const bus = document.getElementById('bus-marker');
       bus.style.left = currX + '%';
       bus.style.top = currY + '%';
     }, 100);
   }
 
-  function startTimer(durationSec) {
+  function startScheduleTimer() {
     if (timerInterval) clearInterval(timerInterval);
-    targetTime = Date.now() + (durationSec * 1000);
 
     timerInterval = setInterval(() => {
-      const remainingSec = Math.ceil((targetTime - Date.now()) / 1000);
-      
-      if (remainingSec >= 0) {
-        document.getElementById('disp-time').innerText = 'PLÁN: ' + remainingSec + 's';
+      const now = Date.now();
+      const diffSec = Math.floor((targetTimestamp - now) / 1000);
+
+      if (diffSec >= 0) {
+        document.getElementById('disp-time').innerText = 'PLÁN: ' + diffSec + 's';
         document.getElementById('disp-delay').innerText = 'MEŠKANIE: 0s';
         document.getElementById('disp-delay').style.color = '#94a3b8';
       } else {
-        const delay = Math.abs(remainingSec);
+        const delay = Math.abs(diffSec);
         document.getElementById('disp-time').innerText = 'PLÁN: 0s';
         document.getElementById('disp-delay').innerText = 'MEŠKANIE: +' + delay + 's';
         document.getElementById('disp-delay').style.color = '#ef4444';
@@ -770,9 +867,12 @@
     renderTickets();
 
     if (next) {
-      const durationSec = Math.floor(Math.random() * 16) + 15; // 15-30s
-      startTimer(durationSec);
-      animateBusBetween(curr, next, durationSec);
+      const legDuration = Math.floor(Math.random() * 11) + 20; // 20-30s na úsek
+      accumulatedScheduledTime += legDuration;
+      targetTimestamp = lineStartTimestamp + (accumulatedScheduledTime * 1000);
+
+      startScheduleTimer();
+      animateBusBetween(curr, next, legDuration);
     } else {
       if (timerInterval) clearInterval(timerInterval);
       document.getElementById('disp-time').innerText = 'PLÁN: --';
@@ -784,8 +884,6 @@
     if (!currentRoute) return;
 
     if (currentIndex < currentRoute.length - 1) {
-      if (timerInterval) clearInterval(timerInterval);
-
       currentIndex++;
       const curr = currentRoute[currentIndex];
       const next = currentRoute[currentIndex + 1];
@@ -803,6 +901,7 @@
 
         speak(msg, () => {
           if (isEnd) {
+            if (timerInterval) clearInterval(timerInterval);
             document.getElementById('disp-stop').innerText = "KONIEC LINKY";
             document.getElementById('disp-next').innerText = "STANOVIŠTE: Garáž";
             document.getElementById('btn-arrive').disabled = true;
@@ -814,14 +913,104 @@
             renderTickets();
             alert("Koniec linky! Môžete si vybrať ďalšiu linku.");
           } else {
-            nextLeg();
+            // Po príchode na zastávku vygenerujeme cestujúcich
+            generatePassengerDemand(curr);
           }
         });
       });
     }
   }
 
-  // Načítanie hlasov do pamäte prehliadača
+  // --- FUNKCIONALITA POPUP OKNA CESTUJÚCICH ---
+  function generatePassengerDemand(stopName) {
+    const availableDestinations = getAvailableStops();
+    if (availableDestinations.length === 0) return nextLeg();
+
+    pendingPassengerDemand = [];
+    const numPassengers = Math.floor(Math.random() * 3) + 1; // 1 až 3 skupiny cestujúcich
+
+    for (let i = 0; i < numPassengers; i++) {
+      const randomTicketType = baseTicketTypes[Math.floor(Math.random() * baseTicketTypes.length)];
+      const randomDest = availableDestinations[Math.floor(Math.random() * availableDestinations.length)];
+      const count = Math.floor(Math.random() * 2) + 1; // 1 alebo 2 ks
+      const unitPrice = calculateTicketPrice(randomTicketType, randomDest);
+
+      pendingPassengerDemand.push({
+        ticketType: randomTicketType,
+        destination: randomDest,
+        count: count,
+        unitPrice: unitPrice
+      });
+    }
+
+    showPassengerModal(stopName);
+  }
+
+  function showPassengerModal(stopName) {
+    document.getElementById('modal-stop-name').innerText = stopName;
+    const listContainer = document.getElementById('modal-passenger-list');
+    listContainer.innerHTML = '';
+
+    let totalPrice = 0;
+
+    pendingPassengerDemand.forEach(item => {
+      const itemTotal = item.unitPrice * item.count;
+      totalPrice += itemTotal;
+
+      const row = document.createElement('div');
+      row.className = 'passenger-item';
+      row.innerHTML = `
+        <span>${item.count}x ${item.ticketType.name} ➡️ <small style="color:var(--primary)">${item.destination}</small></span>
+        <span style="color:var(--success)">${itemTotal.toFixed(2)}€</span>
+      `;
+      listContainer.appendChild(row);
+    });
+
+    document.getElementById('modal-total-price').innerText = totalPrice.toFixed(2) + ' €';
+    document.getElementById('passenger-modal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('passenger-modal').classList.remove('active');
+  }
+
+  function applyAndPayPassengers() {
+    let totalBatchCount = 0;
+    let totalBatchPrice = 0;
+
+    pendingPassengerDemand.forEach(item => {
+      totalBatchCount += item.count;
+      totalBatchPrice += item.unitPrice * item.count;
+    });
+
+    playTicketPrintSound();
+
+    revenue += totalBatchPrice;
+    count += totalBatchCount;
+
+    document.getElementById('stat-revenue').innerText = revenue.toFixed(2) + ' €';
+    document.getElementById('stat-count').innerText = count + ' ks';
+
+    closeModal();
+    nextLeg();
+  }
+
+  function applyPassengersToGrid() {
+    selectedTickets = {};
+    if (pendingPassengerDemand.length > 0) {
+      selectedTargetStop = pendingPassengerDemand[0].destination;
+      renderStopsSelector();
+    }
+
+    pendingPassengerDemand.forEach(item => {
+      selectedTickets[item.ticketType.id] = (selectedTickets[item.ticketType.id] || 0) + item.count;
+    });
+
+    renderTickets();
+    closeModal();
+    nextLeg();
+  }
+
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = () => {
       window.speechSynthesis.getVoices();
